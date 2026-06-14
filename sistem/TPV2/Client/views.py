@@ -10,7 +10,7 @@ class Controller:
     def clientSave(self, request):
         data = json.loads(request.body)
         clientDTO = ClientDTO(**data.get('client', {}))
-        return JsonResponse(self.service.saveResponse(clientDTO=clientDTO))
+        return JsonResponse(self.service.saveClientResponse(clientDTO=clientDTO))
     
     @csrf_exempt
     def adressSave(self, request):

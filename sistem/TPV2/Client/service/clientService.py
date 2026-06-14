@@ -19,12 +19,13 @@ class ClientService:
         if self.c_model.clientExists(code_client=clientDTO.code, doc=clientDTO.doc):
             return Response().erroMens(menssage=Errors.CLIENT_ALREADY_EXISTS, status=409)
         try:
-            client_model = self.convert_client.toModel(clientDTO)
+            client_model = self.convert_client.toModel(dto=clientDTO)
         except Exception:
             return Response().erroMens(menssage=Errors.CONVERSION_ERROR, status=500)
         try:
-            self.c_model.clientSave(client_model)
-        except Exception:
+            self.c_model.clientSave(client=client_model)
+        except Exception as e:
+            print(e)
             return Response().erroMens(menssage=Errors.MODELS_ERROR, status=500)
         return Response().sucessMens(mensage=Success.CLIENT_MODIFIED, value=client_model)
 

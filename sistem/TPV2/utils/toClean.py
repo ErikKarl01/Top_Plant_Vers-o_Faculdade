@@ -29,14 +29,12 @@ class ToClean:
     def alphaNumeric(self, val: str) -> str:
         '''Return uppercase letters'''
         val_str = str(val or '').strip()
-        val_str = re.sub(r'[^A-Za-z0-9]+', '', val_str)
         val_str = val_str.upper()
         return val_str
 
     def personName(self, val: str) -> str:
         val_str = str(val or '').strip()
-        val_str = re.sub(r"[^A-Za-zÀ-ÖØ-öø-ÿ'\s-]+", '', val_str)
-        val_str = re.sub(r'\s+', ' ', val_str)
+        val_str = re.sub(r'[ \t]+', ' ', val_str)
         return val_str
 
     def email(self, val: str) -> str:
@@ -49,6 +47,5 @@ class ToClean:
 
     def addressText(self, val: str):
         val_str = str(val or '').strip()
-        val_str = re.sub(r"[^A-Za-zÀ-ÖØ-öø-ÿ0-9\s.,-]+", '', val_str)
         val_str = re.sub(r'\s+', ' ', val_str)
         return val_str

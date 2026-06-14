@@ -113,7 +113,7 @@ class Validate:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or len(val_str) < 8:
                 return MENSAGE_ERRO['nome']
-            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'\s-]+$", val_str) or not val_str:
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ' cmd-]+$", val_str) or not val_str:
                 return MENSAGE_ERRO['nome']
             return MENSAGE_SUCESS
         
