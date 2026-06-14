@@ -67,10 +67,10 @@ def tamanhoExobitante(val: Any) -> bool:
 class Validate:
     def validateCode(self, val: str) -> str:
         val_str = str(val) or ""
-        if tamanhoExobitante(val_str) or len(val_str) > 10 or len(val_str) < 3 or not val_str:
+        if tamanhoExobitante(val_str) or len(val_str) > 10 or len(val_str) < 4 or not val_str:
             return MENSAGE_ERRO['codigo']
         if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
-            return False
+            return MENSAGE_ERRO['codigo']
         return MENSAGE_SUCESS
     
     class Client:
@@ -113,7 +113,7 @@ class Validate:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or len(val_str) < 8:
                 return MENSAGE_ERRO['nome']
-            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ' cmd-]+$", val_str) or not val_str:
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$", val_str) or not val_str:
                 return MENSAGE_ERRO['nome']
             return MENSAGE_SUCESS
         

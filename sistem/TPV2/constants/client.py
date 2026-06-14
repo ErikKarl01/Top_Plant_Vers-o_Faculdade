@@ -45,6 +45,8 @@ class Errors:
     SEARCH_ERROR = 'Erro ao inserir os dados, verifique se os dados de busca estão corretos.'
     NULL_LIST = 'Nenhum cliente cadastrado.'
     SAVE_ERRO = 'Erro ao salvar objeto no banco de dados'
+    EMAIL_ALREADY_REGISTES = 'Email já cadastrado no sistema'
+    CONTACT_ALREADY_REGISTES = 'Contato já cadastrado no sistema'
     
 class Success:
     CLIENT_REGISTERED = 'Cliente cadastrado com sucesso'

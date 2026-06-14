@@ -50,6 +50,12 @@ class Client(models.Model):
             return client
         return None 
     
+    def contactAlreadyRegistered(self, contact: str):
+        return Client.objects.filter(contact=contact).exists()
+    
+    def emailtAlreadyRegistered(self, email: str):
+        return Client.objects.filter(email=email).exists()
+    
     def clientHasAdress(self, code_client: str):
         client = Client.objects.filter(code=code_client).first()
         adress = Adress.objects.filter(client=client).first()

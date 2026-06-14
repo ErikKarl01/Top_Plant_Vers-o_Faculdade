@@ -4,6 +4,16 @@ from utils.validate import Validate, MENSAGE_SUCESS
 from Client.models import Client
 from constants.client import Errors, Success
 from constants.responseClass import Response
+
+def verifyUniqueCamps(email: str, contact: str):
+    c_model = Client()
+    mensages = []
+    if c_model.emailtAlreadyRegistered(email=email):
+        mensages.append(Errors.EMAIL_ALREADY_REGISTES)
+    if c_model.contactAlreadyRegistered(contact=contact):
+        mensages.append(Errors.CONTACT_ALREADY_REGISTES)
+    return mensages
+    
     
 
 class ClientService:
@@ -18,6 +28,9 @@ class ClientService:
             return Response().erroMens(menssage=mens_client, status=400)
         if self.c_model.clientExists(code_client=clientDTO.code, doc=clientDTO.doc):
             return Response().erroMens(menssage=Errors.CLIENT_ALREADY_EXISTS, status=409)
+        mensages = verifyUniqueCamps(contact=clientDTO.contact, email=clientDTO.email)
+        if mensages:
+            return Response().erroMens(menssage=mensages, status=409)
         try:
             client_model = self.convert_client.toModel(dto=clientDTO)
         except Exception:
@@ -37,6 +50,9 @@ class ClientService:
             return Response().erroMens(menssage=result_validate, status=400)
         if not self.c_model.clientExists(code_client=code_client):
             return Response().erroMens(Errors.CLIENT_NOT_FOUND, 404)
+        mensages = verifyUniqueCamps(contact=clientDTO.contact, email=clientDTO.email)
+        if mensages:
+            return Response().erroMens(menssage=mensages, status=409)
         try:
             client_model = self.convert_client.toModel(clientDTO)
         except Exception:

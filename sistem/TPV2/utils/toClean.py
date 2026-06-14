@@ -23,7 +23,7 @@ import re
 class ToClean:
     def onlyDigits(self, val: str) -> str:
         val_str = str(val or '').strip()
-        val_str = re.sub(r'[^0-9]+', '', val_str)
+        val_str = re.sub(r'[.\- \t)(\\]+', '', val_str)
         return val_str
 
     def alphaNumeric(self, val: str) -> str:
