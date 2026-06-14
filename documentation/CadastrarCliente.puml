@@ -1,0 +1,60 @@
+@startuml "Diagrama de sequeência - Cadastrar Cliente"
+
+
+actor "Vendedor" as v
+boundary "Tela de Cadastrar de Cliente" as show
+control "view" as view
+participant "serviceCentralizer: ServiceCentralizer" as ss
+participant "clientService: ClientService" as cs
+participant "toClean: ToClean" as tc
+participant "validate: Validate" as val
+participant "clientConvert: ClientConvert" as cc
+participant "clientModel: Client" as cm
+participant "clienteDTO: ClienteDTO" as dto
+
+v -> show: Enviar formulário
+activate v
+activate show
+
+show -> view: saveClient(formulario)
+activate view
+
+view --> dto: <<create>>
+
+view -> ss: saveClientResponse(clientDTO)
+activate ss
+
+ss -> tc: cleanClient(clientDTO)
+activate tc
+tc --> ss: client_clean
+deactivate tc
+
+ss -> cs: saveClient(clientDTO)
+activate cs
+cs -> val: Client.forRegister(clientDTO)
+activate val
+val -> cs: response
+deactivate val
+cs -> cm: clientExists(code, doc)
+activate cm
+cm --> cs: response
+deactivate cm
+cs -> cc: toModel(clientDTO)
+activate cc
+cc --> cs: client
+deactivate cc
+cs -> cm: saveClient(client)
+activate cm
+cm --> cs: client
+deactivate cm
+cs --> ss: client
+deactivate cs
+ss --> view: client
+deactivate ss
+view --> show: response
+deactivate view
+show --> v: Exibe resposta de cadastro
+deactivate show
+deactivate v
+
+@enduml

@@ -38,7 +38,6 @@ class ClientService:
         try:
             self.c_model.clientSave(client=client_model)
         except Exception as e:
-            print(e)
             return Response().erroMens(menssage=Errors.MODELS_ERROR, status=500)
         return Response().sucessMens(mensage=Success.CLIENT_MODIFIED, value=client_model)
 

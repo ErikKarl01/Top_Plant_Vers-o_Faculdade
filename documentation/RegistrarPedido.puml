@@ -1,0 +1,58 @@
+@startuml "UC5 - Registrar Venda (Lógica com Coleção)"
+skinparam style strictuml
+autonumber
+
+actor "Vendedor" as v
+boundary "Tela de Registro de Pedido" as t
+control "view" as view
+participant "orderService: OrderService" as os
+collections "itemOrderDTO: ItemOrderDTO" as io
+participant "toClean: ToClean" as tc
+participant "validate: Validate" as val
+participant "productModel: Product" as pm
+participant "clientModel: Client" as cm
+participant "orderModel: Order" as om
+
+
+v -> t: Preenche o formulário
+activate v
+activate t
+t -> view: saveOrder(form)
+activate view
+view --> io: <<create>>
+view -> os: saveOrder(code_client, items)
+activate os
+os -> tc: alphaNumeric(code_client)
+activate tc
+tc --> os: code_client_clean
+deactivate tc
+os -> val: Order.forRegister(code_client, items)
+activate val
+val --> os: response
+deactivate val
+os -> cm: clientExists(code_client)
+activate cm 
+cm --> os: response
+deactivate cm
+
+loop [for item in items]
+    os -> pm: productExists(item.code_product)
+    activate pm
+    pm --> os: response
+    deactivate pm
+end
+
+os -> om: saveOrder(code_client, items)
+activate om
+om --> os: order
+deactivate om
+
+os --> view: response
+deactivate os
+view --> t: response
+deactivate view
+t --> v: Exibe resultado do processamento
+deactivate t
+deactivate v
+
+@enduml
