@@ -1,1 +1,47 @@
-star
+@startuml "Diagrama de atividades - Cadastrar produto"
+
+|views|
+start
+
+repeat 
+    |views|
+    :Receber novo formulário;
+    |Service|
+    :Processar formulário;
+    |ToClean|
+    :Limpar dados;
+    |Validate|
+    :Validar dados;
+    :Retornar validação de dados;
+
+    |Service|
+    if (Dados inválidos?) then (Sim)
+        |views|
+        :Exibir mensagem de erro;
+    else (Não)
+        |Service|
+        :Criar objeto Product;
+        |Model|
+        :Verificar se produto já existe;
+        :Retornar verificação de existência;
+
+        |Service|
+        if (Produto existe?) then (Sim)
+            |views|
+            :Exibir mensagem de erro;
+        else (Não)
+            |Model|
+            :Salvar produto;
+            |Service|
+            :Converter objeto Product para formato json;
+            :Criar mensagem de retorno;
+            |views|
+            :Exibir mensagem de retorno;
+            stop 
+        endif
+    endif
+repeat while (Nova tentativa) is (Sim) not (Não)
+
+stop
+
+@enduml
