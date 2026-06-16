@@ -1,0 +1,176 @@
+@startuml "Diagrama de Classes - Pedido"
+
+class OrderModel {
+    -id: int
+    -code: str
+    -dateTime: DateTime
+    -status: str
+    -itensPedido: Set
+    -client: Client
+
+    +saveOrder(order: OrderModel): OrderModel
+    +updateOrder(order: OrderModel): OrderModel
+    +toCorrectOrder(order: OrderModel): OrderModel
+}
+
+class Client {
+    -id: int
+    -name: str
+    -code: str
+    -doc_type: str
+    -doc: str
+    -contact: str
+    -email: str
+    -state_register: str
+
+    +list(): list
+    +save(code: str): Client
+    +delete(code: str): void
+    +update(client: Client, code_client: str): Client
+    +returnClient(name: str, code: str, doc: str): Any
+    +returnForName(name: str): list
+    +returnForCode(code: str): Client
+    +returnForDoc(doc: str): Client
+}
+
+class Product {
+    -id: int
+    -name: str
+    -code: str
+    -price: float
+    -measure: str
+
+    +save(product: Product): Product
+    +delete(code_product: str): void
+    +update(product: Product): Product
+    +returnProduct(name: str, code: str): Any
+    +returnForName(name: str): Product
+    +returnForCode(code: str): Product
+    +list(): list
+}
+
+class ItemOrderModel {
+    -id: int
+    -produtc: Product
+    -amount: int
+    -discount: float
+    -order_model: OrderModel
+
+    +saveItem(item: ItemOrderModel): ItemOrderModel
+    +updateItem(item: ItemOrderModel): ItemOrderModel
+    +toCorrectItem(item: ItemOrderModel): ItemOrderModel
+}
+
+class OrderService {
+    -response: Response
+    -validate: Validate
+    -toClean: ToClean
+    -convert: Convert
+
+    +saveOrder(code_order: str, items: Set): Response
+    +updateOrder(code_order: str, items: Set): Response
+    +toCorrectOrder(code_order: str, items: Set): Response
+}
+
+class Controller {
+    +saveOrder(request: Request): Response
+    +updateOrder(request: Request): Response
+    +toCorrectOrder(request: Request): Response
+}
+
+class Response {
+    -menssage: str 
+    -status: int 
+    -value: Any
+    -sucess: bool
+
+    +sucessMens(mensage: str, value: Any): void
+    +erroMens(mensage: str, status: int): void
+    +toDict(): void
+}
+
+class OrderDTO{
+    -code: int
+    -status: String
+    -dateTime: DateTime
+}
+
+class ItemOrderDTO {
+    -code_product: int
+    -name_product: str
+    -price: float
+    -amount: int
+    -discount: float
+}
+
+class Validate {
+    +validateCode(code: str): str
+}
+
+class ValidateOrder {
+    +ValidateOrder(orderDTO: OrderDTO): str
+    +ValidateItems(itemsOrder: Set): str
+}
+
+class ToClean {
+    +onlyDigits(val: str) -> str:
+    +alphaNumeric(val: str) -> str:
+}
+
+class Convert {
+    +toDict()
+    +toDTO()
+    +toModel()
+}
+
+class ConvertOrder {
+    +toDict(orderModel: OrderModel): dict
+    +toDTO(orderModel: OrderModel): OrderDTO
+    +toModel(orderDTO: OrderDTO): OrderModel
+}
+
+class ConvertItemOrder {
+    +toDict(itemOrder: ItemOrder): dict
+    +toDTO(itemOrder: ItemOrder): ItemOrderDTO
+    +toModel(orderDTO: OrderDTO): ItemOrder
+}
+
+OrderModel "1" *-- "1..*" ItemOrderModel: Contêm
+
+OrderModel --> Client
+
+ItemOrderModel --> Product
+
+OrderService --> OrderModel
+
+OrderService --> ToClean
+
+OrderService --> Validate
+
+OrderService --> ConvertOrder
+
+OrderService --> ConvertItemOrder
+
+Convert <|-- ConvertOrder: Implement
+
+Convert <|-- ConvertItemOrder: Implement
+
+OrderService --> Response
+
+Validate +-- ValidateOrder
+
+Controller --> OrderService
+
+ConvertOrder ..> OrderDTO: <<return>>
+
+ConvertOrder ..> OrderModel: <<return>>
+
+ConvertItemOrder ..> ItemOrderDTO: <<return>>
+
+ConvertItemOrder ..> ItemOrderModel: <<return>>
+
+ValidateOrder ..> OrderDTO: <<parameter>>
+
+ValidateOrder ..> ItemOrderDTO: <<parameter>>
+
+@enduml
