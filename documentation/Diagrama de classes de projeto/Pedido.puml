@@ -113,8 +113,8 @@ class ValidateOrder {
 }
 
 class ToClean {
-    +onlyDigits(val: str) -> str:
-    +alphaNumeric(val: str) -> str:
+    +onlyDigits(val: str) str:
+    +alphaNumeric(val: str) str:
 }
 
 class Convert {
