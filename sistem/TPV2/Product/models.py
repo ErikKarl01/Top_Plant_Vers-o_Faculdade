@@ -1,5 +1,6 @@
 from __future__ import annotations
 from django.db import models
+from constants.productConstants import PRODUCT_TYPE_CHOICES
 
 class Product (models.Model):
     code = models.CharField(
@@ -16,7 +17,13 @@ class Product (models.Model):
     )
     price = models.FloatField(
         null=False,
-        blank=False
+        blank=False,
+        default=0.0
+    )
+    discount = models.FloatField(
+        null=False,
+        blank=False,
+        default=0.0
     )
     description = models.CharField(
         max_length=255
@@ -24,7 +31,8 @@ class Product (models.Model):
     type = models.CharField(
         max_length=20,
         null=False,
-        blank=False
+        blank=False,
+        choices=PRODUCT_TYPE_CHOICES
     )
     measure = models.CharField(
         max_length=10,
@@ -62,6 +70,7 @@ class Product (models.Model):
             product_obj.measure = product.measure
             product_obj.description = product.description
             product_obj.licensed = product.licensed
+            product_obj.discount = product.discount
             product_obj.save()
             return product_obj
         return None
@@ -89,6 +98,14 @@ class Product (models.Model):
         product = self.productReturn(code_product=code_product, name=name)
         if product and price:
             product.price = price
+            product.save()
+            return product
+        return None
+
+    def productUpdateDiscount(self, code_product: str='', name: str='', discount: float=0.0) -> Product:
+        product = self.productReturn(code_product=code_product, name=name)
+        if product and discount is not None:
+            product.discount = discount
             product.save()
             return product
         return None

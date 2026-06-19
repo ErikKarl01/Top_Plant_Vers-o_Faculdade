@@ -129,8 +129,8 @@ class Service:
     
     
     def productUpdatePrice(self, code_product: str='', name: str='', price: float=0.0):
-        mensage_validate_price = self.validate.Product().price(price)
-        mensage_validate_code = self.validate.Product().validateCode(code_product)
+        mensage_validate_price = self.validate.Product().priceAndDiscount(price)
+        mensage_validate_code = self.validate.validateCode(code_product)
         mensage_validate_name = self.validate.Product().name(name)
         if mensage_validate_price != MENSAGE_SUCESS:
             return self.response.erroMens(mensage=mensage_validate_price, status=400)
@@ -151,3 +151,27 @@ class Service:
         if not product:
             return self.response.erroMens(mensage=Errors.PRODUCT_NOT_FOUND, status=404)
         return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED_PRICE, value=product)
+    
+    def productUpdateDiscount(self, code_product: str='', name: str='', discount: float=0.0):
+        mensage_validate_discount = self.validate.Product().priceAndDiscount(discount)
+        mensage_validate_code = self.validate.validateCode(code_product)
+        mensage_validate_name = self.validate.Product().name(name)
+        if mensage_validate_discount != MENSAGE_SUCESS:
+            return self.response.erroMens(mensage=mensage_validate_discount, status=400)
+        if code_product and mensage_validate_code != MENSAGE_SUCESS:
+            return self.response.erroMens(mensage=mensage_validate_code, status=400)
+        if name and mensage_validate_name != MENSAGE_SUCESS:
+            return self.response.erroMens(mensage=mensage_validate_name, status=400)
+        if not code_product and not name:
+            return self.response.erroMens(mensage=Errors.PRODUCT_NOT_FOUND, status=404)
+        try:
+            product = self.p_model.productUpdateDiscount(code_product=code_product, name=name, discount=discount)
+        except Exception as e:
+            return self.response.erroMens(mensage=[Errors.MODELS_ERROR, str(e)], status=500)
+        try:
+            product = self.convert.toDict(product)
+        except Exception as e:
+            return self.response.erroMens(mensage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+        if not product:
+            return self.response.erroMens(mensage=Errors.PRODUCT_NOT_FOUND, status=404)
+        return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED_DISCOUNT, value=product)

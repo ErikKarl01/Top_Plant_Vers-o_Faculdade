@@ -17,3 +17,4 @@ class Success:
     PRODUCT_DELETED = 'Produto excluído com sucesso.'
     RETURN = 'Busca bem sucedida.'
     PRODUCT_MODIFIED_PRICE = 'Preço do produto modificado com sucesso.'
+    PRODUCT_MODIFIED_DISCOUNT = 'Desconto do produto modificado com sucesso.'

@@ -52,7 +52,7 @@ CLIENT_MENSAGE_ERRO_VALIDATION = {
 
 PRODUCT_MENSAGE_ERRO_VALIDATION = {
     'name': 'Campo nome inválido para produto',
-    'price': 'Preço inserido é inválido, somente falor numérico aceito',
+    'price_and_discount': 'Valor inserido é inválido, somente valor numérico aceito',
     'description': 'Campo descrição inválido',
     'type': 'Campo tipo inválido, permitido apenas Ornamental e Hortaliça',
     'licenced': 'Campo licenciado inválido',
@@ -246,7 +246,8 @@ class Validate:
             mensages = {
                 'mens_code': Validate.validateCode(product.code),
                 'mens_name': self.name(product.name),
-                'mens_price': self.price(product.price),
+                'mens_price': self.priceAndDiscount(product.price),
+                'mens_discount': self.priceAndDiscount(product.discount),
                 'mens_description': self.description(product.description),
                 'mens_type': self.type(product.type),
                 'mens_measure': self.measure(product.vmeasure),
@@ -254,7 +255,7 @@ class Validate:
             }
             mensages_error = []
             
-            for key, value in mensages:
+            for key, value in mensages.items():
                 if value != MENSAGE_SUCESS:
                     mensages_error[key] = value
             if mensages_error:
@@ -269,7 +270,7 @@ class Validate:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
             return MENSAGE_SUCESS
         
-        def price(self, val: float):
+        def priceAndDiscount(self, val: float):
             try:
                 val_floar = float(val)
                 if 0.0 <= val_floar <= 1000000:

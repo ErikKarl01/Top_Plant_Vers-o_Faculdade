@@ -49,6 +49,16 @@ class Controller():
         else:
             return JsonResponse({'mensage': 'Method not allowed'}, status=405)
         
+    def updateDiscountProduct(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            code_product = data.get('code_product', '')
+            name = data.get('name', '')
+            discount = data.get('discount', 0.0)
+            return JsonResponse(self.service.productUpdateDiscount(code_product=code_product, name=name, discount=discount))
+        else:
+            return JsonResponse({'mensage': 'Method not allowed'}, status=405)
+        
     def deleteProduct(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
