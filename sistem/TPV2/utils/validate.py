@@ -1,4 +1,5 @@
-from constants.client import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
+from sistem.TPV2.constants.clientConstants import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
+from constants.productConstants import PRODUCT_TYPE_CHOICES
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ, CPF
@@ -28,24 +29,36 @@ import re
 PEOPLE_PLACE_LIST = [t[0] for t in TYPE_PEOPLEPLACE_CHOICES]
 ADRESS_TYPE_LIST = [t[0] for t in ADRESS_TYPE]
 DOCUMENT_TYPE_LIST = [t[0] for t in DOCUMENT_TYPE]
-    
 
-MENSAGE_ERRO = {
-'nome': 'Campo nome inválido',
-'codigo': 'Campo código deve conter apenas letras e números',
-'cpf': 'CPF inválido', 
-'cnpj': 'CNPJ inválido', 
-'email': 'Email inválido', 
-'número': 'Número de telefone inválido', 'nscr': 'Inscrição estadual inválida', 
-'tipo': 'Tipo de documento inválido, permitido apenas CPF e CNPJ',
-'logradouro': 'Campo logradouro inválido', 
-'cep': 'Cep inválido, somente números permitidos', 
-'num_estabelecimento': 'Campo número inválido, somente valores numéricos permitidos', 
-'cidade': 'Campo cidade inválido, somente caracteres e números permitidos', 
-'bairro': 'Campo bairro inválido',
-'tipo endereço': 'Tipo de endereço inválido',
-'doc_type_nao_informado': 'Tipo de documento não informado ou registro estadual inconsistente'
+PRODUCT_TYPES = [t[0] for t in PRODUCT_TYPE_CHOICES]
+    
+CODE_MENSAGE_ERRO_VALIDATION = 'Campo código deve conter apenas letras e números'
+
+CLIENT_MENSAGE_ERRO_VALIDATION = {
+    'nome': 'Campo nome inválido para cliente',
+    'cpf': 'CPF inválido', 
+    'cnpj': 'CNPJ inválido', 
+    'email': 'Email inválido', 
+    'número': 'Número de telefone inválido', 'nscr': 'Inscrição estadual inválida', 
+    'tipo': 'Tipo de documento inválido, permitido apenas CPF e CNPJ',
+    'logradouro': 'Campo logradouro inválido', 
+    'cep': 'Cep inválido, somente números permitidos', 
+    'num_estabelecimento': 'Campo número inválido, somente valores numéricos permitidos', 
+    'cidade': 'Campo cidade inválido, somente caracteres e números permitidos', 
+    'bairro': 'Campo bairro inválido',
+    'tipo endereço': 'Tipo de endereço inválido',
+    'doc_type_nao_informado': 'Tipo de documento não informado ou registro estadual inconsistente'
 }
+
+PRODUCT_MENSAGE_ERRO_VALIDATION = {
+    'name': 'Campo nome inválido para produto',
+    'price': 'Preço inserido é inválido, somente falor numérico aceito',
+    'description': 'Campo descrição inválido',
+    'type': 'Campo tipo inválido, permitido apenas Ornamental e Hortaliça',
+    'licenced': 'Campo licenciado inválido',
+    'measure': 'Unidade de medida incorreta'
+}
+
 
 MENSAGE_SUCESS = 'SUCESS'
 
@@ -68,20 +81,14 @@ class Validate:
     def validateCode(self, val: str) -> str:
         val_str = str(val) or ""
         if tamanhoExobitante(val_str) or len(val_str) > 10 or len(val_str) < 4 or not val_str:
-            return MENSAGE_ERRO['codigo']
+            return CODE_MENSAGE_ERRO_VALIDATION
         if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
-            return MENSAGE_ERRO['codigo']
+            return CODE_MENSAGE_ERRO_VALIDATION
         return MENSAGE_SUCESS
     
     class Client:
         def forRegister(self, client: Any):
-            mensages_erro = {}
-            validate = Validate()
-            mens_code = validate.validateCode(client.code)
-            mens_name = self.validateName(client.name)
             mens_doc_type = self.documentType(client.doc_type)
-            mens_email = self.email(client.email)
-            mens_contact = self.contact(client.contact)
             if mens_doc_type == MENSAGE_SUCESS:
                 if client.doc_type == 'CNPJ' and client.state_register:
                     mens_doc = self.cnpj(client.doc)
@@ -90,14 +97,15 @@ class Validate:
                     mens_doc = self.cpf(client.doc)
                     mens_state_register = MENSAGE_SUCESS
                 else:
-                    mens_doc = MENSAGE_ERRO['doc_type_nao_informado']
+                    mens_doc = CLIENT_MENSAGE_ERRO_VALIDATION['doc_type_nao_informado']
             else:
-                mens_doc = MENSAGE_ERRO['doc_type_nao_informado']
+                mens_doc = CLIENT_MENSAGE_ERRO_VALIDATION['doc_type_nao_informado']
+            mensages_erro = {}
             mensages = {
-                'mens_code': mens_code,
-                'mens_name': mens_name,
-                'mens_email': mens_email,
-                'mens_contact': mens_contact,
+                'mens_code': Validate().validateCode(client.code),
+                'mens_name': self.validateName(client.name),
+                'mens_email': self.email(client.email),
+                'mens_contact': self.contact(client.contact),
                 'mens_state_register': mens_state_register,
                 'mens_doc_type': mens_doc_type,
                 'mens_doc': mens_doc
@@ -112,81 +120,75 @@ class Validate:
         def validateName(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or len(val_str) < 8:
-                return MENSAGE_ERRO['nome']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['nome']
             if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$", val_str) or not val_str:
-                return MENSAGE_ERRO['nome']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['nome']
             return MENSAGE_SUCESS
         
         def documentType(self, val: str):
             val_str = str(val) or ""
             if not val_str in DOCUMENT_TYPE_LIST:
-                return  MENSAGE_ERRO['tipo']
+                return  CLIENT_MENSAGE_ERRO_VALIDATION['tipo']
             return MENSAGE_SUCESS
         
         def cnpj(self, val: str):
             val_str = str(val) or ""
             if not val_str or not val_str.isdigit() or len(val_str) != 14:
-                return MENSAGE_ERRO['cnpj']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cnpj']
             validator_cnpj = CNPJ()
             if not validator_cnpj.validate(val_str):
-                return MENSAGE_ERRO['cnpj']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cnpj']
             return MENSAGE_SUCESS
         
         def cpf(self, val: str):
             val_str = str(val) or ""
             if not val_str or not val_str.isdigit() or len(val_str) != 11:
-                return MENSAGE_ERRO['cpf']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cpf']
             validator_cpf = CPF()
             if not validator_cpf.validate(val_str):
-                return MENSAGE_ERRO['cpf']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cpf']
             return MENSAGE_SUCESS
         
         def email(self, val: str):
             val_str = str(val) or ""
             if not val_str or tamanhoExobitante(val_str):
-                return MENSAGE_ERRO['email']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['email']
             try:
                 validate_email(val_str)
                 return MENSAGE_SUCESS
             except ValidationError:
-                return MENSAGE_ERRO['email']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['email']
             
         def contact(self, val: str):
             val_str = str(val) or ""
             if not val_str or not val_str.isdigit() or not len(val_str) in (10, 11):
-                return MENSAGE_ERRO['número']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['número']
             try:
                 number_formated = phonenumbers.parse(val_str, 'BR')
                 if not phonenumbers.is_valid_number(number_formated):
-                    return MENSAGE_ERRO['número']
+                    return CLIENT_MENSAGE_ERRO_VALIDATION['número']
                 return MENSAGE_SUCESS
             except:
-                return MENSAGE_ERRO['número']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['número']
         
         def stateRegister(self, val: str) -> str:
             val_str = str(val) or ""
             if not validateIE(val=val_str):
-                return MENSAGE_ERRO['nscr']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['nscr']
             return MENSAGE_SUCESS
     
     #Clesse endereço, atrelada a um cliente
     class Adress:
         def forRegister(self, adress: Any):
-            mensages_erro = {}
-            mens_zone_code = self.validateZcode(adress.code_zone)
-            mens_city = self.validateCity(adress.city)
-            mens_people_place = self.validatePplace(adress.people_place)
-            mens_neig_b = self.validateNeig(adress.neig_b)
-            mens_number = self.validateNumberEst(adress.number)
-            mens_type = self.adressType(adress.type)
             mensages = {
-                'mens_zone_code': mens_zone_code,
-                'mens_city': mens_city,
-                'mens_people_place': mens_people_place,
-                'mens_neig_b': mens_neig_b, 
-                'mens_number': mens_number,
-                'mens_type': mens_type
+                'mens_zone_code': self.validateZcode(adress.code_zone),
+                'mens_city': self.validateCity(adress.city),
+                'mens_people_place': self.validatePplace(adress.people_place),
+                'mens_neig_b': self.validateNeig(adress.neig_b), 
+                'mens_number': self.validateNumberEst(adress.number),
+                'mens_type': self.adressType(adress.type)
             }
+            mensages_erro = {}
             for key, mensage in mensages.items():
                 if mensage != MENSAGE_SUCESS:
                     mensages_erro[key] = mensage 
@@ -197,43 +199,114 @@ class Validate:
         def validateZcode(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str)or  not val:
-                return MENSAGE_ERRO["cep"]
+                return CLIENT_MENSAGE_ERRO_VALIDATION["cep"]
             if len(val_str) == 8 and val_str.isdigit():
                 return MENSAGE_SUCESS
-            return MENSAGE_ERRO["cep"]
+            return CLIENT_MENSAGE_ERRO_VALIDATION["cep"]
     
         def validateCity(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or not val_str or len(val_str) < 4:
-                return MENSAGE_ERRO['cidade']
-            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9\s]+$", val):
-                return MENSAGE_ERRO['cidade']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cidade']
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val):
+                return CLIENT_MENSAGE_ERRO_VALIDATION['cidade']
             return MENSAGE_SUCESS
         
         def validatePplace(self, val: str) -> str:
             val_str = str(val) or ""
             if val_str not in PEOPLE_PLACE_LIST:
-                return MENSAGE_ERRO['logradouro']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['logradouro']
             return MENSAGE_SUCESS
         
         def validateNeig(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or not val_str or len(val_str) < 4:
-                return MENSAGE_ERRO['bairro']
-            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s.,-]+$", val_str):
-                return MENSAGE_ERRO['bairro']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['bairro']
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9 .,-]+$", val_str):
+                return CLIENT_MENSAGE_ERRO_VALIDATION['bairro']
             return  MENSAGE_SUCESS
         
         def validateNumberEst(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or not val_str or len(val_str) > 8:
-                return MENSAGE_ERRO['num_estabelecimento']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['num_estabelecimento']
             if not re.match(r"^[0-9]+$", val_str):
-                return MENSAGE_ERRO['num_estabelecimento']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['num_estabelecimento']
             return MENSAGE_SUCESS
         
         def adressType(self, val: str):
             val_str = str(val) or ""
             if not val_str in ADRESS_TYPE_LIST:
-                return MENSAGE_ERRO['tipo endereço']
+                return CLIENT_MENSAGE_ERRO_VALIDATION['tipo endereço']
+            return MENSAGE_SUCESS
+     
+    # Classe validação de produto   
+    class Product:
+        def forRegister(self, product: Any):
+            mensages = {
+                'mens_code': Validate.validateCode(product.code),
+                'mens_name': self.name(product.name),
+                'mens_price': self.price(product.price),
+                'mens_description': self.description(product.description),
+                'mens_type': self.type(product.type),
+                'mens_measure': self.measure(product.vmeasure),
+                'mens_licenced': self.licenced(product.licenced)
+            }
+            mensages_error = []
+            
+            for key, value in mensages:
+                if value != MENSAGE_SUCESS:
+                    mensages_error[key] = value
+            if mensages_error:
+                return mensages_error
+            return MENSAGE_SUCESS
+        
+        def name(self, val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val or len(val) < 4:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
+            return MENSAGE_SUCESS
+        
+        def price(self, val: float):
+            try:
+                val_floar = float(val)
+                if 0.0 <= val_floar <= 1000000:
+                    return MENSAGE_SUCESS
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
+            except Exception:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
+        
+        def description(self, val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val or len(val) < 8:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['description']
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['description']
+            return MENSAGE_SUCESS
+        
+        def type(self, val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val_str:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
+            if not val_str in PRODUCT_TYPES:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
+            return MENSAGE_SUCESS
+        
+        def licenced(self, val: bool):
+            try:
+                val_bool = bool(val)
+                if not isinstance(val_bool):
+                    return PRODUCT_MENSAGE_ERRO_VALIDATION['licenced']
+                return MENSAGE_SUCESS
+            except:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['licenced']
+        
+        def measure(val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val_str:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
+            if not re.match(r"^[A-Za-z/,.-]+$"):
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
             return MENSAGE_SUCESS

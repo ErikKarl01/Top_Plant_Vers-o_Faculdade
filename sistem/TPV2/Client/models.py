@@ -1,5 +1,5 @@
 from __future__ import annotations
-from constants.client import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
+from sistem.TPV2.constants.clientConstants import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
 from django.db import models
 
 class Client(models.Model):

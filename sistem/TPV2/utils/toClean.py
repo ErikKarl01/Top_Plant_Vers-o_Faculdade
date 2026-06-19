@@ -32,7 +32,7 @@ class ToClean:
         val_str = val_str.upper()
         return val_str
 
-    def personName(self, val: str) -> str:
+    def name(self, val: str) -> str:
         val_str = str(val or '').strip()
         val_str = re.sub(r'[ \t]+', ' ', val_str)
         return val_str
@@ -45,7 +45,7 @@ class ToClean:
         val_str = str(val or '').strip().upper()
         return val_str
 
-    def addressText(self, val: str):
+    def text(self, val: str):
         val_str = str(val or '').strip()
         val_str = re.sub(r'\s+', ' ', val_str)
         return val_str

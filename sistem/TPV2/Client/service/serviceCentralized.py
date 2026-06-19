@@ -4,7 +4,7 @@ from Client.service.clientService import ClientService
 from Client.service.adressService import AdressService
 from utils.converet.convertClient import ConvertClient, ConvertAdress
 from constants.responseClass import Response
-from constants.client import Errors
+from sistem.TPV2.constants.clientConstants import Errors
 
 def cleanClient(clientDTO: ClientDTO):
     clean = ToClean()
