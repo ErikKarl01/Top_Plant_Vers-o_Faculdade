@@ -59,6 +59,12 @@ PRODUCT_MENSAGE_ERRO_VALIDATION = {
     'measure': 'Unidade de medida incorreta'
 }
 
+STOCK_MENSAGE_ERRO_VALIDATION = {
+    'stove_name': 'Campo nome do estoque inválido',
+    'activated': 'Campo ativado deve ser booleano',
+    'item_stock_amount': 'Campo quantidade deve ser um número inteiro entre 0 e 1000000'
+}
+
 
 MENSAGE_SUCESS = 'SUCESS'
 
@@ -311,3 +317,44 @@ class Validate:
             if not re.match(r"^[A-Za-z/,.-]+$"):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
             return MENSAGE_SUCESS
+        
+    class Stock:
+        def forRegister(self, stock: Any):
+            mensages = {
+                'mens_stove_name': self.stoveName(stock.stove_name),
+                'mens_activated': self.activated(stock.activated)
+            }
+            mensages_error = []
+            
+            for key, value in mensages.items():
+                if value != MENSAGE_SUCESS:
+                    mensages_error[key] = value
+            if mensages_error:
+                return mensages_error
+            return MENSAGE_SUCESS
+        
+        def stoveName(self, val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val_str or len(val_str) < 4:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
+            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
+            return MENSAGE_SUCESS
+        
+        def activated(self, val: bool):
+            try:
+                val_bool = bool(val)
+                if not isinstance(val_bool, bool):
+                    return STOCK_MENSAGE_ERRO_VALIDATION['activated']
+                return MENSAGE_SUCESS
+            except:
+                return STOCK_MENSAGE_ERRO_VALIDATION['activated']
+            
+        def amount(self, val: int):
+            try:
+                val_int = int(val)
+                if val_int < 0 or val_int > 1000000:
+                    return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
+                return MENSAGE_SUCESS
+            except:
+                return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']

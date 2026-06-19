@@ -1,6 +1,7 @@
 from __future__ import annotations
 from django.db import models
 from constants.productConstants import PRODUCT_CATEGORY_CHOICES
+from Product.models import Product
 from datetime import date as Date
 import secrets
 import string
@@ -138,12 +139,19 @@ class StockItem(models.Model):
 class Operations(models.Model):
     date_operation = models.DateTimeField(auto_now_add=True)
     item_stock = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name='operation', null=False, blank=True)
-    value = models.IntegerField(
+    value_after = models.IntegerField(
         max_digits=10,
         default=0,
         null=False,
         blank=True
     )
+    value_before = models.IntegerField(
+        max_digits=10,
+        default=0,
+        null=False,
+        blank=True
+    )
+    
     type_operation = models.CharField(
         max_length=15,
         default='Unnamed',
