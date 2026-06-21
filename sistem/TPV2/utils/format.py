@@ -1,4 +1,4 @@
-from sistem.TPV2.constants.clientConstants import TYPE_PEOPLEPLACE_CHOICES
+from constants.clientConstants import TYPE_PEOPLEPLACE_CHOICES
 
 PEOPLE_PLACE_LIST = [t[1] for t in TYPE_PEOPLEPLACE_CHOICES]
 

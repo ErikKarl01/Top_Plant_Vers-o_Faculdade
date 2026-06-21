@@ -1,4 +1,5 @@
-from sistem.TPV2.constants.clientConstants import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
+from constants.clientConstants import (DOCUMENT_TYPE, ADRESS_TYPE,
+TYPE_PEOPLEPLACE_CHOICES)
 from constants.productConstants import PRODUCT_TYPE_CHOICES
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -61,7 +62,7 @@ PRODUCT_MENSAGE_ERRO_VALIDATION = {
 
 STOCK_MENSAGE_ERRO_VALIDATION = {
     'stove_name': 'Campo nome do estoque inválido',
-    'activated': 'Campo ativado deve ser booleano',
+    'type_stock': 'Campo tipo de estoque inválido',
     'item_stock_amount': 'Campo quantidade deve ser um número inteiro entre 0 e 1000000'
 }
 
@@ -281,9 +282,9 @@ class Validate:
                 val_floar = float(val)
                 if 0.0 <= val_floar <= 1000000:
                     return MENSAGE_SUCESS
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
             except Exception:
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
         
         def description(self, val: str):
             val_str = str(val)
@@ -314,7 +315,7 @@ class Validate:
             val_str = str(val)
             if tamanhoExobitante(val=val_str) or not val_str:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
-            if not re.match(r"^[A-Za-z/,.-]+$"):
+            if not re.match(r"^[A-Za-z/,.-]+$", val_str):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
             return MENSAGE_SUCESS
         
@@ -322,15 +323,23 @@ class Validate:
         def forRegister(self, stock: Any):
             mensages = {
                 'mens_stove_name': self.stoveName(stock.stove_name),
-                'mens_activated': self.activated(stock.activated)
+                'type_stock': self.stock_type(stock.category)
             }
             mensages_error = []
-            
-            for key, value in mensages.items():
-                if value != MENSAGE_SUCESS:
-                    mensages_error[key] = value
+            if mensages.get('mens_stove_name'):
+                mensages_error.append(mensages.get('mens_stove_name'))
+            if mensages.get('type_stock'):
+                mensages_error.append(mensages.get('type_stock'))
             if mensages_error:
                 return mensages_error
+            return MENSAGE_SUCESS
+        
+        def code(self, val: str) -> str:
+            val_str = str(val) or ""
+            if tamanhoExobitante(val_str) or len(val_str) > 20 or len(val_str) < 4 or not val_str:
+                return CODE_MENSAGE_ERRO_VALIDATION
+            if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
+                return CODE_MENSAGE_ERRO_VALIDATION
             return MENSAGE_SUCESS
         
         def stoveName(self, val: str):
@@ -341,14 +350,11 @@ class Validate:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
             return MENSAGE_SUCESS
         
-        def activated(self, val: bool):
-            try:
-                val_bool = bool(val)
-                if not isinstance(val_bool, bool):
-                    return STOCK_MENSAGE_ERRO_VALIDATION['activated']
-                return MENSAGE_SUCESS
-            except:
-                return STOCK_MENSAGE_ERRO_VALIDATION['activated']
+        def stock_type(self, val: str):
+            val_str = str(val)
+            if tamanhoExobitante(val=val_str) or not val_str or not val_str in PRODUCT_TYPES:
+                return STOCK_MENSAGE_ERRO_VALIDATION['type_stock']
+            return MENSAGE_SUCESS
             
         def amount(self, val: int):
             try:
@@ -358,3 +364,4 @@ class Validate:
                 return MENSAGE_SUCESS
             except:
                 return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
+            

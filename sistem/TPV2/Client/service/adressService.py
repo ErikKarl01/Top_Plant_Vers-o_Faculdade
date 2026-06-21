@@ -3,7 +3,7 @@ from utils.format import FormatToReturn
 from Client.dto import AdressDTO
 from utils.validate import Validate, MENSAGE_SUCESS
 from Client.models import Client, Adress
-from sistem.TPV2.constants.clientConstants import Errors, Success
+from constants.clientConstants import Errors, Success
 from constants.responseClass import Response
 
 

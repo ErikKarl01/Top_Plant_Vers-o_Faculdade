@@ -2,7 +2,7 @@ from utils.converet.convertClient import ConvertClient
 from Client.dto import ClientDTO
 from utils.validate import Validate, MENSAGE_SUCESS
 from Client.models import Client
-from sistem.TPV2.constants.clientConstants import Errors, Success
+from constants.clientConstants import Errors, Success
 from constants.responseClass import Response
 
 def verifyUniqueCamps(email: str, contact: str):
