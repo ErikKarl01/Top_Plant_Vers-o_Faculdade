@@ -19,6 +19,39 @@ def generateOrderCode():
         return generateOrderCode()
     return code
 
+
+def generateSnapshotCode():
+    caracters = string.ascii_uppercase + string.digits
+    code = 'SN' + ''.join(secrets.choice(caracters) for i in range(8))
+    if Snapshot.objects.filter(code=code).first():
+        return generateSnapshotCode()
+    return code
+
+class Snapshot(models.Model):
+    code = models.CharField(max_length=20, null=False, blank=False, unique=True)
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='snapshot')
+    price = models.FloatField(default=0.0)
+    discount = models.FloatField(default=0.0)
+    
+    def saveSnapshot(self, code_product: str, price: float):
+        product = Product.objects.filter(code=code_product).first()
+        snapshot = Snapshot()
+        snapshot.code = generateSnapshotCode()
+        snapshot.product = product
+        snapshot.price = price
+        snapshot.save()
+        return snapshot
+        
+    def updateSnapshot(self, code_snapshot: str, price: float, discount: float):
+        snapshot = Snapshot.objects.filter(code=code_snapshot).first()
+        if snapshot:
+            snapshot.price = price
+            snapshot.discount = discount
+            snapshot.save()
+            return snapshot
+        return None
+    
+
 class Order(models.Model):
     code = models.CharField(
         max_length=20,
@@ -82,57 +115,42 @@ class Order(models.Model):
         if code_order:
             return Order.objects.filter(code=code_order).first()
         return None
-        
+    
     
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_item_of_product')
-    order = models.ForeignKey(
-        Order, 
-        on_delete=models.CASCADE,
-        related_name='order_item_of_order',
-        null=True,
-        blank=True
-    )
-    amount = models.IntegerField(
-        default=0,
-        null=False, 
-        blank=True
-    )
-    price = models.FloatField(
-        default=0.0
-    )
-    discount = models.FloatField(
-        default=0.0
-    )
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_item_of_order')
+    amount = models.IntegerField(default=0, null=False, blank=True)
+    price = models.FloatField(default=0.0)
+    discount = models.FloatField(default=0.0)
     
-    def saveItem(self, code_product: str, price_product: float):
-        item = OrderItem()
+    def saveItem(self, code_order: str, code_product: str, amount: int):
+        order = Order.objects.filter(code=code_order).first()
         product = Product.objects.filter(code=code_product).first()
-        item.product = product
-        item.price = price_product
+        snapshot = Snapshot.objects.filter(product=product).first()
+        
+        item = OrderItem.objects.filter(order=order, product=product).first()
+        if not item:
+            item = OrderItem()
+            item.order = order
+            item.product = product
+            
+        item.amount = amount
+        item.price = snapshot.price
+        item.discount = snapshot.discount
         item.save()
         return item
-            
+    
     def returnItem(self, code_order: str):
         order = Order.objects.filter(code=code_order).first()
         return list(OrderItem.objects.filter(order=order))
-        
-    def updateItem(self, code_product: str, price_product: float, discount: float):
-        if price_product and discount:
-            product = Product.objects.filter(code=code_product).first()
-            item = OrderItem.objects.filter(product=product).first()
-            item.price = price_product
-            item.discount = discount
-            item.save()
-            return item
-        return None
             
-    def updateForOrderItem(self, code_order: str, code_product: str):
-        if code_order and code_product:
-            product = Product.objects.filter(code=code_product).first()
-            order = Order.objects.filter(code=code_order).first()
-            item = OrderItem.objects.filter(product=product).first()
-            item.order = order
+    def updateItem(self, code_order: str, code_product: str, amount: int):
+        order = Order.objects.filter(code=code_order).first()
+        product = Product.objects.filter(code=code_product).first()
+        item = OrderItem.objects.filter(order=order, product=product).first()
+        if item:
+            item.amount = amount
             item.save()
             return item
         return None

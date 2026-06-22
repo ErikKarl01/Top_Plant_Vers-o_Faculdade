@@ -392,6 +392,15 @@ class Validate:
                 return MENSAGE_SUCESS
             except:
                 return ORDER_MENSAGE_ERRO_VALIDATION['float_']
+            
+        def validateInt(self, val: int):
+            try:
+                val_int = int(val)
+                if val_int < 0 or val_int > 1000000:
+                    return ORDER_MENSAGE_ERRO_VALIDATION['float_']
+                return MENSAGE_SUCESS
+            except:
+                return ORDER_MENSAGE_ERRO_VALIDATION['float_']
         
         def code(self, val: str) -> str:
             val_str = str(val) or ""
