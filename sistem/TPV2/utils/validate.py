@@ -1,10 +1,12 @@
 from constants.clientConstants import (DOCUMENT_TYPE, ADRESS_TYPE,
 TYPE_PEOPLEPLACE_CHOICES)
+from constants.orderConstantes import STATUS_ORDER_CHOICES
 from constants.productConstants import PRODUCT_TYPE_CHOICES
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ, CPF
 from typing import Any
+from datetime import date
 import phonenumbers
 import re
 
@@ -32,8 +34,11 @@ ADRESS_TYPE_LIST = [t[0] for t in ADRESS_TYPE]
 DOCUMENT_TYPE_LIST = [t[0] for t in DOCUMENT_TYPE]
 
 PRODUCT_TYPES = [t[0] for t in PRODUCT_TYPE_CHOICES]
+
+STATUS_ORDER_ = [t[0] for t in STATUS_ORDER_CHOICES]
     
 CODE_MENSAGE_ERRO_VALIDATION = 'Campo código deve conter apenas letras e números'
+DATE_MENSAGE_ERRO_VALIDATION = 'Intervalo de tempo inserido incorreto'
 
 CLIENT_MENSAGE_ERRO_VALIDATION = {
     'nome': 'Campo nome inválido para cliente',
@@ -66,6 +71,11 @@ STOCK_MENSAGE_ERRO_VALIDATION = {
     'item_stock_amount': 'Campo quantidade deve ser um número inteiro entre 0 e 1000000'
 }
 
+ORDER_MENSAGE_ERRO_VALIDATION = {
+    'float_': 'Campo preço ou disconto deve ser um número entre 0 e 1000000',
+    'status': 'Valor de status incorreto'
+}
+
 
 MENSAGE_SUCESS = 'SUCESS'
 
@@ -92,6 +102,14 @@ class Validate:
         if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
             return CODE_MENSAGE_ERRO_VALIDATION
         return MENSAGE_SUCESS
+    
+    def validateDate(self, time_interval):
+        if isinstance(time_interval, dict):
+            if (not isinstance(time_interval['start'], date) or not isinstance(time_interval['end'], date) or
+                time_interval['start']>time_interval['end']):
+                return DATE_MENSAGE_ERRO_VALIDATION
+            return MENSAGE_SUCESS
+        return DATE_MENSAGE_ERRO_VALIDATION
     
     class Client:
         def forRegister(self, client: Any):
@@ -365,3 +383,26 @@ class Validate:
             except:
                 return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
             
+    class Oder:
+        def validateFloat(self, val: float):
+            try:
+                val_int = float(val)
+                if val_int < 0.0 or val_int > 1000000.0:
+                    return ORDER_MENSAGE_ERRO_VALIDATION['float_']
+                return MENSAGE_SUCESS
+            except:
+                return ORDER_MENSAGE_ERRO_VALIDATION['float_']
+        
+        def code(self, val: str) -> str:
+            val_str = str(val) or ""
+            if tamanhoExobitante(val_str) or len(val_str) > 20 or len(val_str) < 4 or not val_str:
+                return CODE_MENSAGE_ERRO_VALIDATION
+            if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
+                return CODE_MENSAGE_ERRO_VALIDATION
+            return MENSAGE_SUCESS
+        
+        def status(self, val: str):
+            val_str = str(val) or ''
+            if tamanhoExobitante(val=val_str) or not val_str or not val_str in STATUS_ORDER_:
+                return ORDER_MENSAGE_ERRO_VALIDATION['status']
+            return MENSAGE_SUCESS

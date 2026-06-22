@@ -2,12 +2,12 @@ from typing import Any
 
 
 class Response():
-    menssage: str
+    menssage: Any
     status: int
     value: Any
     sucess: bool
     
-    def __init__(self, status: int=0, menssage: str='', value: Any=None, sucess: bool=False):
+    def __init__(self, status: int=0, menssage: Any='', value: Any=None, sucess: bool=False):
         self.status = status
         self.menssage = menssage
         self.value = value
