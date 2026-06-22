@@ -4,7 +4,7 @@ from Product.models import Product
 from datetime import date as Date
 import string
 import secrets
-from constants import STATUS_ORDER_CHOICES
+from constants.orderConstantes import STATUS_ORDER_CHOICES
 from django.db import models
 
 def generateOrderCode():
@@ -62,7 +62,7 @@ class Order(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='pedido')
     date_created = models.DateField(auto_now_add=True)
     status = models.CharField(
-        max_length=15,
+        max_length=30,
         null=False,
         blank=False,
         choices=STATUS_ORDER_CHOICES,
