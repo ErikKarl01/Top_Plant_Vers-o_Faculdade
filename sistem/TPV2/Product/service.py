@@ -102,7 +102,7 @@ class Service:
             self.p_model.productDelete(code_product)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
-        return self.response.sucessMens(mensage=Success.PRODUCT_DELETED)
+        return self.response.sucessMens(mensage=Success.PRODUCT_DELETED, value=None)
     
     
     def productReturn(self, name: str='', code_product: str=''):
