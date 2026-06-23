@@ -59,9 +59,18 @@ class Service:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
         if mensage_validate != MENSAGE_SUCESS:
             return self.response.erroMens(menssage=mensage_validate, status=400)
-        if self.p_model.productExists(product_clean.code):
+        # Se o código informado no payload for diferente do código original,
+        # então precisamos garantir que nenhum outro produto já use esse código.
+        if product_clean.code and product_clean.code != code_product and self.p_model.productExists(product_clean.code):
             return self.response.erroMens(menssage=Errors.PRODUCT_ALREADY_EXISTS, status=400)
-        if self.p_model.nametAlreadyRegistered(product_clean.name):
+
+        # Verifica se já existe outro produto com o mesmo nome (exceto o próprio sendo atualizado)
+        try:
+            existing_with_name = self.p_model.productReturn(name=product_clean.name)
+        except Exception:
+            existing_with_name = None
+
+        if existing_with_name and existing_with_name.code != code_product:
             return self.response.erroMens(menssage=Errors.NAME_ALREADY_EXISTS, status=400)
         try:
             product_model = self.convert.toModel(product_clean)
