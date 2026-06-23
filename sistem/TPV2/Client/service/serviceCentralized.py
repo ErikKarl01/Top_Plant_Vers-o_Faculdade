@@ -161,29 +161,38 @@ class ServiceCentralized:
         return Response().sucessMens(mensage, list_return).toDict()
 
 
-    def modifyResponse(self, code_client: str, clientDTO: ClientDTO, adressDTO: AdressDTO):
+    def modifyClientResponse(self, clientDTO: ClientDTO, code_client: str):
         client_clean = cleanClient(clientDTO)
-        adress_clean = cleanAdress(adressDTO)
-
         response_client = self.c_service.clientModify(client_clean, code_client)
 
         if not response_client.sucess:
             return response_client.toDict()
         
         client_model = response_client.value
-        response_adress = self.a_service.adressModify(client_model.code, adress_clean)
+
+        try:
+            client_dict = self.convert_client.toDict(client=client_model)
+        except Exception:
+            return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
+
+        response_client.value = {'client': client_dict}
+        return response_client.toDict()
+
+
+    def modifyAdressResponse(self, adressDTO: AdressDTO, code_client: str):
+        adress_clean = cleanAdress(adressDTO)
+        response_adress = self.a_service.adressModify(code_client, adress_clean)
 
         if not response_adress.sucess:
             return response_adress.toDict()
 
         try:
-            client_dict = self.convert_client.toDict(client=client_model)
             adress_dict = self.convert_adress.toDict(adress=response_adress.value)
         except Exception:
-            return Response().erroMens(Errors.CONVERSION_ERROR,500).toDict()
+            return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
 
-        response_client.value = {'client': client_dict, 'adress': adress_dict}
-        return response_client.toDict()
+        response_adress.value = {'adress': adress_dict}
+        return response_adress.toDict()
 
 
     def deleteResponse(self, code_client: str):
