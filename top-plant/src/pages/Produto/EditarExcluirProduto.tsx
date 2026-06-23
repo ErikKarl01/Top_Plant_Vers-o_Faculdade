@@ -36,13 +36,19 @@ export function EditarExcluirProduto({ handleBuscarParaEdicao, handleAtualizar, 
     }
   }
 
-  const aoAtualizar = () => {
+ const aoAtualizar = () => {
     const payload = {
       codigo: codigoOriginal,
       produto: { codigo, nome, descricao, tipo, medida }
     }
+    
     handleAtualizar(payload)
-    setCodigoOriginal(codigo)
+    
+    // CORREÇÃO: Removemos o setCodigoOriginal problemático.
+    // Em vez disso, fechamos a edição e limpamos a busca para manter a segurança dos dados.
+    setProdutoEditando(false)
+    setCodigoBusca('')
+    setNomeBusca('')
   }
 
   const aoExcluir = () => {

@@ -310,11 +310,69 @@ return (
         )}
         {section === 'produto-editar' && (
           <EditarExcluirProduto 
-            handleBuscarParaEdicao={async () => { /* Chame sua API aqui */ return null }}
-            handleAtualizar={() => { /* Chame sua API aqui */ }}
-            handleExcluir={() => { /* Chame sua API aqui */ }}
+            handleBuscarParaEdicao={async (codigo, nome) => {
+              setBusy('produto-buscar')
+              
+              // 1. Faz a busca no backend usando a mesma rota da consulta
+              const result = await requestJson('/product/return/', 'POST', {
+                code_product: codigo,
+                name: nome
+              })
+              
+              // Atualiza a caixinha na hora (apagando a mensagem fantasma)
+              setResponse(result)
+              setBusy(null)
+
+              // 2. Se achou, mapeia do inglês (banco) pro português (tela)
+              if (result.sucess && result.value) {
+                const p = Array.isArray(result.value) ? result.value[0] : result.value
+                const prod = p.produto || p
+
+                return {
+                  codigo: prod.code || prod.codigo || '',
+                  nome: prod.name || prod.nome || '',
+                  descricao: prod.description || prod.descricao || '',
+                  tipo: prod.type || prod.tipo || '',
+                  medida: prod.measure || prod.medida || ''
+                }
+              }
+
+              // Se não achou ou deu erro, retorna nulo para o formulário não abrir
+              return null
+            }}
+            handleAtualizar={async (payload) => {
+                setBusy('produto-atualizar')
+                
+                console.log("atualizar:",payload)
+                // Manda os dados exatos que o ProductDTO exige
+                const result = await requestJson('/product/update/', 'POST', {
+                  code_product: payload.codigo,
+                  product: {
+                    code: payload.produto.codigo,
+                    name: payload.produto.nome,
+                    description: payload.produto.descricao,
+                    type: payload.produto.tipo,
+                    measure: payload.produto.medida,
+                    price: 0 // Removido o discount daqui!
+                  }
+                })
+                console.log("atualizar:",result)
+                setResponse(result)
+                setBusy(null)
+                await loadLists() // Atualiza a tabela global com a edição
+              }}
+            handleExcluir={async (codigo) => {
+              setBusy('produto-excluir')
+              // Rota de deletar (verifique se a url no Django é essa mesma)
+              const result = await requestJson('/product/delete/', 'POST', { 
+                code_product: codigo 
+              })
+              setResponse(result)
+              setBusy(null)
+              await loadLists()
+            }}
             busy={busy}
-            response={response} // <-- Adicionado
+            response={response} 
           />
         )}
 
