@@ -105,7 +105,7 @@ class StockItem(models.Model):
     )
     
     def stockItemCreate(self, code_product: str, code_stock: str):
-        if code_product:
+        if not code_product:
             return None
         item = StockItem()
         item.stock = Stock.objects.filter(code=code_stock).first()

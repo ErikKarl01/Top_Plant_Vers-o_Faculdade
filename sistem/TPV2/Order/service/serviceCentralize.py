@@ -4,20 +4,18 @@ from utils.converet.convertOrder import ConvertOrderItem, ConvertOrder
 from Order.service.orderItemService import OrderItemService
 from Order.service.orderService import OrderService
 from Order.service.snapshotService import SnapshotService
-from Product.service import Service
 from constants.orderConstantes import Errors, Success
 
 def cleanCode(code: str):
     code_str = str(code)
-    cleanner = ToClean.alphaNumeric()
-    return cleanner(code_str)
+    cleaner = ToClean()
+    return cleaner.alphaNumeric(code_str)
 
 class ServiceCentralized:
     response = Response()
     o_service = OrderService()
     i_service = OrderItemService()
     snap_service = SnapshotService()
-    p_service = Service()
     c_item = ConvertOrderItem()
     c_order = ConvertOrder()
     

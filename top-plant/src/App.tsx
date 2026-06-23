@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import './App.css'
 import { Navbar, type Section } from './components/layout/Navbar'
 import { Home } from './pages/Core/Home'
@@ -11,23 +11,14 @@ import { EditarExcluirProduto } from './pages/Produto/EditarExcluirProduto'
 import { CadastroPedido } from './pages/Pedido/CadastroPedido'
 import { ConsultaPedido } from './pages/Pedido/ConsultaPedido'
 import { type AdressDTO, type ClientDTO, type ClientLookupItem } from './types/client'
+import { type ProductListItem } from './types/product'
+import { type OrderListItem, type OrderSavePayload, type OrderSearchFilters } from './types/order'
 
 export type ApiResponse = {
   status?: number
   mensage?: string | string[]
   sucess?: boolean
   value?: unknown
-}
-
-type ProductForm = {
-  code: string
-  name: string
-  price: string
-  description: string
-  type: string
-  measure: string
-  licensed: boolean
-  discount: string
 }
 
 // const apiBase = '/api'
@@ -51,17 +42,6 @@ const defaultAddress: AdressDTO = {
   type: 'COMERCIAL',
 }
 
-const defaultProduct: ProductForm = {
-  code: '',
-  name: '',
-  price: '',
-  description: '',
-  type: 'HORTALICAS',
-  measure: 'UNIDADE',
-  licensed: false,
-  discount: '',
-}
-
 async function requestJson(path: string, method: 'GET' | 'POST', body?: unknown) {
   const response = await fetch(`${path}`, {
     method,
@@ -82,53 +62,28 @@ async function requestJson(path: string, method: 'GET' | 'POST', body?: unknown)
   }
 }
 
-function formatMessage(value: unknown) {
-  if (value == null) return 'Ainda não houve retorno.'
-  if (Array.isArray(value)) return value.join(' ')
-  return String(value)
-}
-
-function renderClientLine(item: unknown) {
-  if (!item || typeof item !== 'object') return 'Cliente sem detalhes.'
-
-  const record = item as { client?: { name?: string; code?: string } }
-  const name = record.client?.name?.trim() || 'Cliente sem nome'
-  const code = record.client?.code?.trim()
-
-  return code ? `${name} - ${code}` : name
-}
-
-function renderProductLine(item: unknown) {
-  if (!item || typeof item !== 'object') return 'Produto sem detalhes.'
-
-  const record = item as { name?: string; code?: string }
-  const name = record.name?.trim() || 'Produto sem nome'
-  const code = record.code?.trim()
-
-  return code ? `${name} - ${code}` : name
-}
-
 function App() {
   const [section, setSection] = useState<Section>('inicio')
   const [clientForm, setClientForm] = useState(defaultClient)
   const [addressForm, setAddressForm] = useState(defaultAddress)
-  const [productForm, setProductForm] = useState(defaultProduct)
   const [clientList, setClientList] = useState<ClientLookupItem[]>([])
   const [clientSearchList, setClientSearchList] = useState<ClientLookupItem[]>([])
-  const [productList, setProductList] = useState<unknown[]>([])
+  const [productList, setProductList] = useState<ProductListItem[]>([])
+  const [orderList, setOrderList] = useState<OrderListItem[]>([])
   const [clientSearch, setClientSearch] = useState('')
   const [productSearch, setProductSearch] = useState('')
   const [response, setResponse] = useState<ApiResponse | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
-  const statusLabel = useMemo(() => {
-    if (!response) return 'Pronto para começar'
-    return response.sucess ? 'Pedido recebido' : 'Algo pediu atenção'
-  }, [response])
-
   useEffect(() => {
     void loadLists()
   }, [])
+
+  useEffect(() => {
+    if (section === 'pedido-consulta') {
+      void loadOrders()
+    }
+  }, [section])
 
   async function loadLists() {
     try {
@@ -145,10 +100,23 @@ function App() {
       console.log("🔍 [DEBUG] A lista de produtos real:", products.value)
 
       if (clients.sucess && Array.isArray(clients.value)) setClientList(clients.value as ClientLookupItem[])
-      if (products.sucess && Array.isArray(products.value)) setProductList(products.value)
+      if (products.sucess && Array.isArray(products.value)) setProductList(products.value as ProductListItem[])
     } catch {
       setClientList([])
       setProductList([])
+    }
+  }
+
+  async function loadOrders() {
+    try {
+      const result = await requestJson('/order/return/', 'POST', {})
+      if (result.sucess && Array.isArray(result.value)) {
+        setOrderList(result.value as OrderListItem[])
+        return
+      }
+      setOrderList([])
+    } catch {
+      setOrderList([])
     }
   }
 
@@ -170,6 +138,63 @@ function App() {
     })
     setResponse(result)
     setBusy(null)
+  }
+
+  async function handleOrderSave(payload: OrderSavePayload) {
+    setBusy('pedido-save')
+    const result = await requestJson('/order/create/', 'POST', payload)
+    setResponse(result)
+    setBusy(null)
+    await loadOrders()
+    return result
+  }
+
+  async function handleOrderSearch(filters: OrderSearchFilters) {
+    setBusy('pedido-search')
+
+    const codeOrder = filters.code_order?.trim()
+    const codeClient = filters.code_client?.trim() || ''
+    const status = filters.status?.trim() || ''
+
+    const hasDateRange = Boolean(filters.start?.trim() && filters.end?.trim())
+
+    const result = codeOrder
+      ? await requestJson('/order/get/', 'POST', { code_order: codeOrder })
+      : await requestJson('/order/return/', 'POST', {
+          time_interval: hasDateRange ? { start: filters.start, end: filters.end } : {},
+          status,
+          code_client: codeClient,
+        })
+
+    setResponse(result)
+
+    if (result.sucess && result.value) {
+      const orderLookup = Array.isArray(result.value) ? result.value : [result.value]
+      setOrderList(orderLookup as OrderListItem[])
+    } else {
+      setOrderList([])
+    }
+
+    setBusy(null)
+    return result
+  }
+
+  async function handleOrderUpdate(codeOrder: string) {
+    setBusy('pedido-update')
+    const result = await requestJson('/order/update/', 'POST', { code_order: codeOrder })
+    setResponse(result)
+    setBusy(null)
+    await loadOrders()
+    return result
+  }
+
+  async function handleOrderDelete(codeOrder: string) {
+    setBusy('pedido-delete')
+    const result = await requestJson('/order/delete/', 'POST', { code_order: codeOrder })
+    setResponse(result)
+    setBusy(null)
+    await loadOrders()
+    return result
   }
 
   async function handleClientSearch(event: FormEvent) {
@@ -379,17 +404,19 @@ return (
           <CadastroPedido 
             clientList={clientList} 
             productList={productList} 
-            handleSalvarPedido={(payload) => { /* Chame sua API de salvar pedido */ }} 
+            handleSalvarPedido={handleOrderSave} 
             busy={busy} 
-            response={response} // <-- Adicionado
+            response={response}
           />
         )}
         {section === 'pedido-consulta' && (
           <ConsultaPedido 
-            pedidosList={[]} 
-            handleBuscarPedidos={(filtros) => { /* Chame sua API de filtro de pedidos */ }} 
+            pedidosList={orderList} 
+            handleBuscarPedidos={handleOrderSearch} 
+            handleAtualizarPedido={handleOrderUpdate}
+            handleExcluirPedido={handleOrderDelete}
             busy={busy}
-            response={response} // <-- Adicionado
+            response={response}
           />
         )}
 

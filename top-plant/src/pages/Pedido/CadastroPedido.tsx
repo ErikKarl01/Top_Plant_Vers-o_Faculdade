@@ -1,311 +1,289 @@
+import { useMemo, useState, type FormEvent } from 'react'
 import type { ApiResponse } from '../../App'
 import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
-import { useState, useMemo } from 'react'
-
-type ProdutoSelecionado = {
-  produto: any
-  quantidade: number
-  desconto: number
-}
+import type { ClientLookupItem } from '../../types/client'
+import type { OrderSavePayload } from '../../types/order'
+import type { ProductListItem } from '../../types/product'
 
 type CadastroPedidoProps = {
-  clientList: any[]
-  productList: any[]
-  handleSalvarPedido: (payload: any) => void
+  clientList: ClientLookupItem[]
+  productList: ProductListItem[]
+  handleSalvarPedido: (payload: OrderSavePayload) => Promise<ApiResponse | void> | void
   busy: string | null
   response: ApiResponse | null
 }
 
+type ClientView = {
+  code: string
+  name: string
+  doc: string
+}
+
+type ProductView = {
+  code: string
+  name: string
+  type: string
+}
+
+function normalizeClient(item: ClientLookupItem | Record<string, unknown>): ClientView {
+  const clientData = (item as ClientLookupItem).client || (item as ClientLookupItem).cliente || item
+  const client = clientData as Record<string, unknown>
+
+  return {
+    code: String(client.code ?? client.codigo ?? '').trim(),
+    name: String(client.name ?? client.nome ?? 'Sem nome').trim(),
+    doc: String(client.doc ?? client.cnpj ?? '').trim(),
+  }
+}
+
+function normalizeProduct(item: ProductListItem | Record<string, unknown>): ProductView {
+  const productData = (item as ProductListItem).produto || (item as ProductListItem).product || item
+  const product = productData as Record<string, unknown>
+
+  return {
+    code: String(product.code ?? product.codigo ?? '').trim(),
+    name: String(product.name ?? product.nome ?? 'Sem nome').trim(),
+    type: String(product.type ?? product.tipo ?? '').trim(),
+  }
+}
+
 export function CadastroPedido({ clientList, productList, handleSalvarPedido, busy, response }: CadastroPedidoProps) {
-  // Estados do formulário
-  const [codigoPedido, setCodigoPedido] = useState('')
-  const [nomeVendedor, setNomeVendedor] = useState('')
-  const [clienteSelecionado, setClienteSelecionado] = useState<any | null>(null)
-  const [produtosSelecionados, setProdutosSelecionados] = useState<ProdutoSelecionado[]>([])
+  const [clientSearch, setClientSearch] = useState('')
+  const [productSearch, setProductSearch] = useState('')
+  const [selectedClientCode, setSelectedClientCode] = useState('')
+  const [selectedProductCodes, setSelectedProductCodes] = useState<string[]>([])
 
-  // Estados de filtro
-  const [filtroCliente, setFiltroCliente] = useState('')
-  const [filtroProduto, setFiltroProduto] = useState('')
+  const clients = useMemo(() => clientList.map(normalizeClient).filter(client => client.code), [clientList])
+  const products = useMemo(() => productList.map(normalizeProduct).filter(product => product.code), [productList])
 
-  // Filtros dinâmicos
-  const clientesFiltrados = useMemo(() => {
-    return clientList.filter(item => {
-      const c = item.cliente || item
-      const codigo = c.codigo || c.code || ''
-      const nome = c.nome || c.name || ''
-      const doc = c.cnpj || c.doc || ''
-      const texto = `${codigo} ${nome} ${doc}`.toLowerCase()
-      return texto.includes(filtroCliente.toLowerCase())
+  const filteredClients = useMemo(() => {
+    const query = clientSearch.trim().toLowerCase()
+    if (!query) return clients
+
+    return clients.filter(client => {
+      const searchable = `${client.code} ${client.name} ${client.doc}`.toLowerCase()
+      return searchable.includes(query)
     })
-  }, [clientList, filtroCliente])
+  }, [clients, clientSearch])
 
-  const produtosFiltrados = useMemo(() => {
-    return productList.filter(item => {
-      const p = item.produto || item
-      const codigo = p.codigo || p.code || ''
-      const nome = p.nome || p.name || ''
-      const texto = `${codigo} ${nome}`.toLowerCase()
-      return texto.includes(filtroProduto.toLowerCase())
+  const filteredProducts = useMemo(() => {
+    const query = productSearch.trim().toLowerCase()
+    if (!query) return products
+
+    return products.filter(product => {
+      const searchable = `${product.code} ${product.name} ${product.type}`.toLowerCase()
+      return searchable.includes(query)
     })
-  }, [productList, filtroProduto])
+  }, [products, productSearch])
 
-  // Ações de Produtos (Novo formato via Checkbox)
-  const handleToggleProduto = (prodItem: any, isChecked: boolean) => {
-    const prod = prodItem.produto || prodItem
-    const codigoAlvo = prod.codigo || prod.code
+  const selectedClient = clients.find(client => client.code === selectedClientCode) ?? null
+  const selectedProducts = products.filter(product => selectedProductCodes.includes(product.code))
 
-    if (isChecked) {
-      // Adiciona ao carrinho com quantidade padrão de 1
-      setProdutosSelecionados([...produtosSelecionados, { produto: prod, quantidade: 1, desconto: 0 }])
-    } else {
-      // Remove do carrinho se desmarcar
-      const novaLista = produtosSelecionados.filter(p => {
-        const cod = p.produto.codigo || p.produto.code
-        return cod !== codigoAlvo
-      })
-      setProdutosSelecionados(novaLista)
-    }
+  const toggleProduct = (code: string) => {
+    setSelectedProductCodes(current => (
+      current.includes(code)
+        ? current.filter(item => item !== code)
+        : [...current, code]
+    ))
   }
 
-  const handleRemoverProduto = (index: number) => {
-    const novaLista = [...produtosSelecionados]
-    novaLista.splice(index, 1)
-    setProdutosSelecionados(novaLista)
+  const clearSelection = () => {
+    setSelectedClientCode('')
+    setSelectedProductCodes([])
+    setClientSearch('')
+    setProductSearch('')
   }
 
-  const handleAlterarItem = (index: number, campo: 'quantidade' | 'desconto', valor: number) => {
-    const novaLista = [...produtosSelecionados]
-    novaLista[index][campo] = valor
-    setProdutosSelecionados(novaLista)
-  }
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault()
 
-  // Fechamento do Pedido
-  const onSubmit = () => {
-    if (!codigoPedido || !nomeVendedor) return alert('Preencha o código do pedido e o vendedor.')
-    if (!clienteSelecionado) return alert('Selecione um cliente para o pedido.')
-    if (produtosSelecionados.length === 0) return alert('Selecione pelo menos um produto na lista.')
-
-    const invalido = produtosSelecionados.some(p => !p.quantidade || p.quantidade <= 0)
-    if (invalido) return alert('Verifique as quantidades dos produtos no carrinho. Não pode ser zero.')
-
-    const payload = {
-      cod_cliente: clienteSelecionado.codigo || clienteSelecionado.code,
-      pedido: {
-        codigo: codigoPedido,
-        nome_vendedor: nomeVendedor,
-        desconto: false 
-      },
-      itens: produtosSelecionados.map(p => ({
-        cod_produto: p.produto.codigo || p.produto.code,
-        item: {
-          quantidade: Number(p.quantidade),
-          desconto: Number(p.desconto)
-        }
-      }))
+    if (!selectedClientCode) {
+      alert('Selecione um cliente para registrar o pedido.')
+      return
     }
 
-    handleSalvarPedido(payload)
-    
-    // Limpar formulário
-    if (busy !== 'pedido-save') {
-      setCodigoPedido('')
-      setNomeVendedor('')
-      setClienteSelecionado(null)
-      setProdutosSelecionados([])
+    if (selectedProductCodes.length === 0) {
+      alert('Selecione pelo menos um produto.')
+      return
+    }
+
+    const payload: OrderSavePayload = {
+      code_client: selectedClientCode,
+      codes_product: selectedProductCodes,
+    }
+
+    const result = await handleSalvarPedido(payload)
+    if (result === undefined || result.sucess) {
+      clearSelection()
     }
   }
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      {/* Coluna Esquerda: Dados, Clientes e Produtos */}
       <div className="lg:col-span-8 flex flex-col gap-6">
         <MensagemRetorno response={response} />
-        
-        {/* Card 1: Dados Base */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Dados do Pedido</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">Código do Pedido</label>
-              <input 
-                type="text" 
-                value={codigoPedido} onChange={(e) => setCodigoPedido(e.target.value)}
-                placeholder="Ex: PED-001"
-                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-              />
+
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="mb-4 border-b border-gray-100 pb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Novo Pedido</h2>
+              <p className="text-gray-500 text-sm mt-1">Escolha um cliente e selecione os produtos que entram no pedido.</p>
             </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">Vendedor</label>
-              <input 
-                type="text" 
-                value={nomeVendedor} onChange={(e) => setNomeVendedor(e.target.value)}
-                placeholder="Nome do vendedor"
-                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-2">Buscar cliente</label>
+                <input
+                  type="text"
+                  value={clientSearch}
+                  onChange={event => setClientSearch(event.target.value)}
+                  placeholder="Código, nome ou documento"
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-2">Buscar produto</label>
+                <input
+                  type="text"
+                  value={productSearch}
+                  onChange={event => setProductSearch(event.target.value)}
+                  placeholder="Código, nome ou tipo"
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card 2: Cliente */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Selecionar Cliente</h2>
-          <input 
-            type="text" 
-            placeholder="Buscar por nome ou código..." 
-            value={filtroCliente} onChange={(e) => setFiltroCliente(e.target.value)}
-            className="w-full px-4 py-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-          />
-          <div className="border border-gray-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-50 sticky top-0">
-                <tr className="text-gray-500 text-sm border-b border-gray-100">
-                  <th className="p-3 font-medium">Código</th>
-                  <th className="p-3 font-medium">Nome</th>
-                  <th className="p-3 font-medium">Documento</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {clientesFiltrados.map((item, idx) => {
-                  const c = item.cliente || item
-                  const isSelecionado = (clienteSelecionado?.codigo || clienteSelecionado?.code) === (c.codigo || c.code)
-                  
-                  return (
-                    <tr 
-                      key={idx} 
-                      onClick={() => setClienteSelecionado(c)}
-                      className={`cursor-pointer transition-colors ${isSelecionado ? 'bg-green-100' : 'hover:bg-green-50'}`}
-                    >
-                      <td className="p-3 text-gray-800">{c.codigo || c.code}</td>
-                      <td className="p-3 text-gray-600">{c.nome || c.name}</td>
-                      <td className="p-3 text-gray-600">{c.cnpj || c.doc}</td>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Selecionar Cliente</h3>
+            <div className="border border-gray-100 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr className="text-gray-500 text-sm border-b border-gray-100">
+                    <th className="p-3 font-medium">Código</th>
+                    <th className="p-3 font-medium">Nome</th>
+                    <th className="p-3 font-medium">Documento</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredClients.length > 0 ? (
+                    filteredClients.map(client => {
+                      const isSelected = selectedClientCode === client.code
+
+                      return (
+                        <tr
+                          key={client.code}
+                          onClick={() => setSelectedClientCode(client.code)}
+                          className={`cursor-pointer transition-colors ${isSelected ? 'bg-green-100' : 'hover:bg-green-50'}`}
+                        >
+                          <td className="p-3 text-gray-800 font-medium">{client.code}</td>
+                          <td className="p-3 text-gray-600">{client.name}</td>
+                          <td className="p-3 text-gray-600">{client.doc || '-'}</td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-6 text-center text-gray-400">Nenhum cliente encontrado.</td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        {/* Card 3: Produtos */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Adicionar Produtos</h2>
-          <input 
-            type="text" 
-            placeholder="Buscar produto por nome ou código..." 
-            value={filtroProduto} onChange={(e) => setFiltroProduto(e.target.value)}
-            className="w-full px-4 py-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-          />
-          <div className="border border-gray-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-            <table className="w-full text-left border-collapse relative">
-              <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
-                <tr className="text-gray-500 text-sm border-b border-gray-100">
-                  <th className="p-3 font-medium w-12 text-center">Sel.</th>
-                  <th className="p-3 font-medium">Código</th>
-                  <th className="p-3 font-medium">Nome</th>
-                  <th className="p-3 font-medium">Tipo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {produtosFiltrados.map((item, idx) => {
-                  const p = item.produto || item
-                  const codigoItem = p.codigo || p.code || '-'
-                  const nomeItem = p.nome || p.name || '-'
-                  const tipoItem = p.tipo || p.type || '-'
-                  
-                  // Verifica se este produto já está no carrinho
-                  const isChecked = produtosSelecionados.some(sel => (sel.produto.codigo || sel.produto.code) === codigoItem)
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Selecionar Produtos</h3>
+            <div className="border border-gray-100 rounded-xl overflow-hidden max-h-72 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
+                  <tr className="text-gray-500 text-sm border-b border-gray-100">
+                    <th className="p-3 font-medium w-12 text-center">Sel.</th>
+                    <th className="p-3 font-medium">Código</th>
+                    <th className="p-3 font-medium">Nome</th>
+                    <th className="p-3 font-medium">Tipo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map(product => {
+                      const checked = selectedProductCodes.includes(product.code)
 
-                  return (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-3 text-center">
-                        <input 
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => handleToggleProduto(p, e.target.checked)}
-                          className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 cursor-pointer accent-green-600"
-                        />
-                      </td>
-                      <td className="p-3 text-gray-800">{codigoItem}</td>
-                      <td className="p-3 text-gray-600">{nomeItem}</td>
-                      <td className="p-3 text-gray-600">{tipoItem}</td>
+                      return (
+                        <tr key={product.code} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleProduct(product.code)}
+                              className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 cursor-pointer accent-green-600"
+                            />
+                          </td>
+                          <td className="p-3 text-gray-800 font-medium">{product.code}</td>
+                          <td className="p-3 text-gray-600">{product.name}</td>
+                          <td className="p-3 text-gray-600">{product.type || '-'}</td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="p-6 text-center text-gray-400">Nenhum produto encontrado.</td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
+          <div className="pt-2 flex gap-3">
+            <button
+              type="submit"
+              disabled={busy === 'pedido-save'}
+              className="flex-1 px-8 py-3 bg-[#4BAF47] hover:bg-[#3D943A] text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-70"
+            >
+              {busy === 'pedido-save' ? 'Processando...' : 'Finalizar Pedido'}
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl transition-colors"
+            >
+              Limpar
+            </button>
+          </div>
+        </form>
       </div>
 
-      {/* Coluna Direita: Resumo do Pedido */}
-      <div className="lg:col-span-4 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-fit sticky top-6 flex flex-col">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-100 pb-4">Resumo</h2>
-        
-        <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
-          <p className="text-sm font-medium text-gray-500 mb-1">Cliente Selecionado:</p>
+      <div className="lg:col-span-4 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-fit sticky top-6 flex flex-col gap-5">
+        <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-100 pb-4">Resumo do Pedido</h2>
+
+        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
+          <p className="text-sm font-medium text-gray-500">Cliente selecionado</p>
           <p className="text-gray-800 font-semibold">
-            {clienteSelecionado ? `${clienteSelecionado.nome || clienteSelecionado.name} (${clienteSelecionado.codigo || clienteSelecionado.code})` : 'Nenhum'}
+            {selectedClient ? `${selectedClient.name} (${selectedClient.code})` : 'Nenhum cliente selecionado'}
           </p>
         </div>
 
-        <h3 className="text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wider">Itens do Carrinho</h3>
-        <div className="flex-1 overflow-y-auto max-h-[400px] space-y-3 mb-6 pr-2">
-          {produtosSelecionados.length === 0 ? (
-            <p className="text-center text-gray-400 text-sm py-8">Vazio. Selecione produtos ao lado.</p>
-          ) : (
-            produtosSelecionados.map((item, idx) => {
-              // Identifica a medida do produto para exibir dinamicamente (ex: KG, L, UN)
-              const medida = item.produto.medida || item.produto.measure || 'UN'
-              
-              return (
-                <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative group">
-                  <p className="font-medium text-gray-800 text-sm mb-3 pr-6">
-                    {item.produto.nome || item.produto.name} <span className="text-gray-400 font-normal">({item.produto.codigo || item.produto.code})</span>
-                  </p>
-                  
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-green-700">Qtd. ({medida})</label>
-                      <input 
-                        type="number" step="0.01" min="0.01" value={item.quantidade}
-                        onChange={(e) => handleAlterarItem(idx, 'quantidade', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs font-semibold text-gray-500">Desc. (R$)</label>
-                      <input 
-                        type="number" step="0.01" min="0" value={item.desconto}
-                        onChange={(e) => handleAlterarItem(idx, 'desconto', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <button 
-                    onClick={() => handleRemoverProduto(idx)}
-                    className="absolute top-3 right-3 text-red-400 hover:text-red-600 transition-colors bg-red-50 rounded-full w-6 h-6 flex items-center justify-center"
-                    title="Remover"
-                  >
-                    ✕
-                  </button>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 uppercase tracking-wider">Produtos escolhidos</h3>
+          <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            {selectedProducts.length > 0 ? (
+              selectedProducts.map(product => (
+                <div key={product.code} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <p className="font-medium text-gray-800 text-sm">{product.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">{product.code}</p>
                 </div>
-              )
-            })
-          )}
+              ))
+            ) : (
+              <p className="text-center text-gray-400 text-sm py-8">Selecione produtos na lista ao lado.</p>
+            )}
+          </div>
         </div>
 
-        <button 
-          onClick={onSubmit}
-          disabled={busy === 'pedido-save'}
-          className="w-full px-4 py-4 bg-[#4BAF47] hover:bg-[#3D943A] text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-70 mt-auto"
-        >
-          {busy === 'pedido-save' ? 'Processando...' : 'Finalizar Pedido'}
-        </button>
+        <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500">
+          O backend cria o pedido com os códigos selecionados e gera os itens automaticamente.
+        </div>
       </div>
-
     </div>
   )
 }

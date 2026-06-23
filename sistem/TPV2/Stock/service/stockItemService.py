@@ -48,11 +48,11 @@ class StockItemService:
         current_amount = item_model.amount
         new_amount = current_amount
         
-        if operation_type == 'REMOCAO':
+        if operation_type.upper() == 'REMOCAO':
             new_amount = current_amount - amount_changed
             if new_amount < 0:
                 return Response().erroMens(menssage="Erro: Quantidade não pode ficar negativa.", status=400)
-        elif operation_type == 'ADICAO':
+        elif operation_type.upper() == 'ADICAO':
             new_amount = current_amount + amount_changed
             if new_amount > 1000000:
                 return Response().erroMens(menssage="Erro: Quantidade ultrapassa limite de 1000000.", status=400)

@@ -128,6 +128,8 @@ class OrderItem(models.Model):
         order = Order.objects.filter(code=code_order).first()
         product = Product.objects.filter(code=code_product).first()
         snapshot = Snapshot.objects.filter(product=product).first()
+        snapshot_price = snapshot.price if snapshot else product.price
+        snapshot_discount = snapshot.discount if snapshot else 0.0
         
         item = OrderItem.objects.filter(order=order, product=product).first()
         if not item:
@@ -136,8 +138,8 @@ class OrderItem(models.Model):
             item.product = product
             
         item.amount = amount
-        item.price = snapshot.price
-        item.discount = snapshot.discount
+        item.price = snapshot_price
+        item.discount = snapshot_discount
         item.save()
         return item
     
