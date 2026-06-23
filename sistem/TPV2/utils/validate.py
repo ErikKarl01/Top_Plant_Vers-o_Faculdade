@@ -268,17 +268,17 @@ class Validate:
     # Classe validação de produto   
     class Product:
         def forRegister(self, product: Any):
+            validate = Validate()
             mensages = {
-                'mens_code': Validate.validateCode(product.code),
+                'mens_code': validate.validateCode(product.code),
                 'mens_name': self.name(product.name),
                 'mens_price': self.priceAndDiscount(product.price),
-                'mens_discount': self.priceAndDiscount(product.discount),
                 'mens_description': self.description(product.description),
                 'mens_type': self.type(product.type),
-                'mens_measure': self.measure(product.vmeasure),
-                'mens_licenced': self.licenced(product.licenced)
+                'mens_measure': self.measure(product.measure),
+                'mens_licenced': self.licensed(product.licensed)
             }
-            mensages_error = []
+            mensages_error = {}
             
             for key, value in mensages.items():
                 if value != MENSAGE_SUCESS:
@@ -294,15 +294,6 @@ class Validate:
             if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
             return MENSAGE_SUCESS
-        
-        def priceAndDiscount(self, val: float):
-            try:
-                val_floar = float(val)
-                if 0.0 <= val_floar <= 1000000:
-                    return MENSAGE_SUCESS
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
-            except Exception:
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
         
         def description(self, val: str):
             val_str = str(val)
@@ -320,16 +311,25 @@ class Validate:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
             return MENSAGE_SUCESS
         
-        def licenced(self, val: bool):
+        def licensed(self, val: bool):
             try:
                 val_bool = bool(val)
-                if not isinstance(val_bool):
+                if not isinstance(val_bool, bool):
                     return PRODUCT_MENSAGE_ERRO_VALIDATION['licenced']
                 return MENSAGE_SUCESS
             except:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['licenced']
+            
+        def priceAndDiscount(self, val: float):
+            try:
+                val_int = float(val)
+                if val_int < 0.0 or val_int > 1000000.0:
+                    return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
+                return MENSAGE_SUCESS
+            except:
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
         
-        def measure(val: str):
+        def measure(self, val: str):
             val_str = str(val)
             if tamanhoExobitante(val=val_str) or not val_str:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']

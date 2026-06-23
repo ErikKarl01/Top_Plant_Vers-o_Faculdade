@@ -20,11 +20,6 @@ class Product (models.Model):
         blank=False,
         default=0.0
     )
-    discount = models.FloatField(
-        null=False,
-        blank=False,
-        default=0.0
-    )
     description = models.CharField(
         max_length=255
     )
@@ -70,7 +65,6 @@ class Product (models.Model):
             product_obj.measure = product.measure
             product_obj.description = product.description
             product_obj.licensed = product.licensed
-            product_obj.discount = product.discount
             product_obj.save()
             return product_obj
         return None
