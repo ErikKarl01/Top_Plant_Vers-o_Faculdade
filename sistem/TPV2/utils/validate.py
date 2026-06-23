@@ -114,13 +114,13 @@ class Validate:
     class Client:
         def forRegister(self, client: Any):
             mens_doc_type = self.documentType(client.doc_type)
+            mens_state_register = MENSAGE_SUCESS
             if mens_doc_type == MENSAGE_SUCESS:
                 if client.doc_type == 'CNPJ' and client.state_register:
                     mens_doc = self.cnpj(client.doc)
                     mens_state_register = self.stateRegister(client.state_register)
                 elif client.doc_type == 'CPF' and not client.state_register:
                     mens_doc = self.cpf(client.doc)
-                    mens_state_register = MENSAGE_SUCESS
                 else:
                     mens_doc = CLIENT_MENSAGE_ERRO_VALIDATION['doc_type_nao_informado']
             else:
