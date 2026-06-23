@@ -47,7 +47,8 @@ class Service:
             product_return = self.convert.toDict(product_saved)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
-        self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price)
+        if not self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price):
+            return self.response.erroMens(menssage='Erro ao criar snapshot', status=400)
         
         return self.response.sucessMens(mensage=Success.PRODUCT_REGISTERED, value=product_return)
     

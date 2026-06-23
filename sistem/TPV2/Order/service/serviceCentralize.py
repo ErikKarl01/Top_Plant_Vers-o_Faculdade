@@ -8,8 +8,8 @@ from constants.orderConstantes import Errors, Success
 
 def cleanCode(code: str):
     code_str = str(code)
-    cleanner = ToClean.alphaNumeric()
-    return cleanner(code_str)
+    cleanner = ToClean()
+    return cleanner.alphaNumeric(code_str)
 
 class ServiceCentralized:
     response = Response()
@@ -23,8 +23,8 @@ class ServiceCentralized:
         code_prod_clean = cleanCode(code=code_product)
         response_save = self.snap_service.saveSnapshot(code_product=code_prod_clean, price=price_product)
         if not response_save.sucess:
-            return response_save.toDict()
-        return response_save.toDict()
+            return False
+        return True
         
     def updateSnapshot(self, code_snapshot: str, price_product: float, discount: float):
         code_snap_clean = cleanCode(code=code_snapshot)
