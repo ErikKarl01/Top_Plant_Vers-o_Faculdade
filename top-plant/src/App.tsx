@@ -49,7 +49,7 @@ type ProductForm = {
   discount: string
 }
 
-const apiBase = '/api'
+// const apiBase = '/api'
 
 const defaultClient: ClientForm = {
   code: '',
@@ -82,7 +82,7 @@ const defaultProduct: ProductForm = {
 }
 
 async function requestJson(path: string, method: 'GET' | 'POST', body?: unknown) {
-  const response = await fetch(`${apiBase}${path}`, {
+  const response = await fetch(`${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
