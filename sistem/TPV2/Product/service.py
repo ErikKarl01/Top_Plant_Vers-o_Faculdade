@@ -6,6 +6,7 @@ from constants.responseClass import Response
 from Product.models import Product
 from constants.productConstants import Errors, Success
 from Order.service.serviceCentralize import ServiceCentralized
+from Stock.service.serviceCentralize import ServiceCentralize as Serv_stock
 
 def cleanProduct(product: ProductDTO) -> ProductDTO:
     toClean = ToClean()
@@ -25,6 +26,7 @@ class Service:
     response = Response()
     p_model = Product()
     snapshot_create = ServiceCentralized()
+    stock_create = Serv_stock()
     
     def productSave(self, product: ProductDTO):
         product_clean = cleanProduct(product)
@@ -49,7 +51,9 @@ class Service:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         if not self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price):
             return self.response.erroMens(menssage='Erro ao criar snapshot', status=400)
-        
+        mens_stock = self.stock_create.createItemStockResponse(code_product=product_saved.code, type_product=product_saved.type)
+        if not mens_stock.sucess:
+            return mens_stock.toDict()
         return self.response.sucessMens(mensage=Success.PRODUCT_REGISTERED, value=product_return)
     
 

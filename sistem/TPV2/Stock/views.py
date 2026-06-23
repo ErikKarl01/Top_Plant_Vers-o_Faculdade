@@ -15,20 +15,6 @@ class StockController:
             return None
 
     @csrf_exempt
-    def createItemStock(self, request):
-        if request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            code_product = data.get('code_product', '')
-            type_product = data.get('type_product', '')
-            
-            res = self.service.createItemStockResponse(code_product=code_product, type_product=type_product)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
-    @csrf_exempt
     def returnStockWithItems(self, request):
         if request.method == 'POST' or request.method == 'GET':
             data = self._get_data(request)
