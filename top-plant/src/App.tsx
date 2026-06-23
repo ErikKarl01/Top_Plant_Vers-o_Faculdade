@@ -203,20 +203,21 @@ function App() {
   async function handleProductSave(payloadRecebido: any) {
     setBusy('product-save')
 
-    // Pega os dados brutos que vieram do formulário (em português)
+    // Pega os dados brutos que vieram do formulário
     const p = payloadRecebido.produto || payloadRecebido;
-    // Traduz para o inglês enviando APENAS o que o formulário possui
+
+    // Traduz para o inglês enviando os campos do ProductDTO
     const result = await requestJson('/product/save/', 'POST', {
       product: {
         code: p.codigo || '',
         name: p.nome || '',
         description: p.descricao || '',
         type: (p.tipo || '').toUpperCase().trim(),
-        measure: (p.medida || '').toUpperCase().trim()
+        measure: (p.medida || '').toUpperCase().trim(),
+        price: Number(p.preco || 0) // <-- ADICIONADO AQUI!
       },
     })
     
-
     setResponse(result)
     setBusy(null)
     await loadLists()
@@ -391,7 +392,7 @@ return (
             clientList={clientList} 
             productList={productList} 
             handleSalvarPedido={(payload) => { /* Chame sua API de salvar pedido */ }} 
-            busy={busy}
+            busy={busy} 
             response={response} // <-- Adicionado
           />
         )}

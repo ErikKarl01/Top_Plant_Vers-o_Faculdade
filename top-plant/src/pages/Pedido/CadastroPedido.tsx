@@ -11,13 +11,12 @@ type ProdutoSelecionado = {
 type CadastroPedidoProps = {
   clientList: any[]
   productList: any[]
-  // Função que o App.tsx vai passar para enviar o payload montado
   handleSalvarPedido: (payload: any) => void
   busy: string | null
   response: ApiResponse | null
 }
 
-export function CadastroPedido({ clientList, productList, handleSalvarPedido, busy,response }: CadastroPedidoProps) {
+export function CadastroPedido({ clientList, productList, handleSalvarPedido, busy, response }: CadastroPedidoProps) {
   // Estados do formulário
   const [codigoPedido, setCodigoPedido] = useState('')
   const [nomeVendedor, setNomeVendedor] = useState('')
@@ -28,11 +27,14 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
   const [filtroCliente, setFiltroCliente] = useState('')
   const [filtroProduto, setFiltroProduto] = useState('')
 
-  // Filtros dinâmicos (substituem o `onkeyup` do HTML)
+  // Filtros dinâmicos
   const clientesFiltrados = useMemo(() => {
     return clientList.filter(item => {
       const c = item.cliente || item
-      const texto = `${c.codigo} ${c.nome} ${c.cnpj}`.toLowerCase()
+      const codigo = c.codigo || c.code || ''
+      const nome = c.nome || c.name || ''
+      const doc = c.cnpj || c.doc || ''
+      const texto = `${codigo} ${nome} ${doc}`.toLowerCase()
       return texto.includes(filtroCliente.toLowerCase())
     })
   }, [clientList, filtroCliente])
@@ -40,22 +42,28 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
   const produtosFiltrados = useMemo(() => {
     return productList.filter(item => {
       const p = item.produto || item
-      const texto = `${p.codigo} ${p.nome}`.toLowerCase()
+      const codigo = p.codigo || p.code || ''
+      const nome = p.nome || p.name || ''
+      const texto = `${codigo} ${nome}`.toLowerCase()
       return texto.includes(filtroProduto.toLowerCase())
     })
   }, [productList, filtroProduto])
 
-  // Ações de Produtos
-  const handleAdicionarProduto = (prodItem: any) => {
+  // Ações de Produtos (Novo formato via Checkbox)
+  const handleToggleProduto = (prodItem: any, isChecked: boolean) => {
     const prod = prodItem.produto || prodItem
-    const index = produtosSelecionados.findIndex(p => p.produto.codigo === prod.codigo)
-    
-    if (index >= 0) {
-      const novaLista = [...produtosSelecionados]
-      novaLista[index].quantidade += 1
-      setProdutosSelecionados(novaLista)
-    } else {
+    const codigoAlvo = prod.codigo || prod.code
+
+    if (isChecked) {
+      // Adiciona ao carrinho com quantidade padrão de 1
       setProdutosSelecionados([...produtosSelecionados, { produto: prod, quantidade: 1, desconto: 0 }])
+    } else {
+      // Remove do carrinho se desmarcar
+      const novaLista = produtosSelecionados.filter(p => {
+        const cod = p.produto.codigo || p.produto.code
+        return cod !== codigoAlvo
+      })
+      setProdutosSelecionados(novaLista)
     }
   }
 
@@ -75,20 +83,20 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
   const onSubmit = () => {
     if (!codigoPedido || !nomeVendedor) return alert('Preencha o código do pedido e o vendedor.')
     if (!clienteSelecionado) return alert('Selecione um cliente para o pedido.')
-    if (produtosSelecionados.length === 0) return alert('Adicione pelo menos um produto.')
+    if (produtosSelecionados.length === 0) return alert('Selecione pelo menos um produto na lista.')
 
     const invalido = produtosSelecionados.some(p => !p.quantidade || p.quantidade <= 0)
-    if (invalido) return alert('Verifique as quantidades dos produtos adicionados.')
+    if (invalido) return alert('Verifique as quantidades dos produtos no carrinho. Não pode ser zero.')
 
     const payload = {
-      cod_cliente: clienteSelecionado.codigo,
+      cod_cliente: clienteSelecionado.codigo || clienteSelecionado.code,
       pedido: {
         codigo: codigoPedido,
         nome_vendedor: nomeVendedor,
         desconto: false 
       },
       itens: produtosSelecionados.map(p => ({
-        cod_produto: p.produto.codigo,
+        cod_produto: p.produto.codigo || p.produto.code,
         item: {
           quantidade: Number(p.quantidade),
           desconto: Number(p.desconto)
@@ -98,11 +106,13 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
 
     handleSalvarPedido(payload)
     
-    // Limpar formulário após envio (opcional, pode depender da resposta do backend no App.tsx)
-    setCodigoPedido('')
-    setNomeVendedor('')
-    setClienteSelecionado(null)
-    setProdutosSelecionados([])
+    // Limpar formulário
+    if (busy !== 'pedido-save') {
+      setCodigoPedido('')
+      setNomeVendedor('')
+      setClienteSelecionado(null)
+      setProdutosSelecionados([])
+    }
   }
 
   return (
@@ -111,6 +121,7 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
       {/* Coluna Esquerda: Dados, Clientes e Produtos */}
       <div className="lg:col-span-8 flex flex-col gap-6">
         <MensagemRetorno response={response} />
+        
         {/* Card 1: Dados Base */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Dados do Pedido</h2>
@@ -157,14 +168,16 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
               <tbody className="divide-y divide-gray-100">
                 {clientesFiltrados.map((item, idx) => {
                   const c = item.cliente || item
+                  const isSelecionado = (clienteSelecionado?.codigo || clienteSelecionado?.code) === (c.codigo || c.code)
+                  
                   return (
                     <tr 
                       key={idx} 
                       onClick={() => setClienteSelecionado(c)}
-                      className="cursor-pointer hover:bg-green-50 transition-colors"
+                      className={`cursor-pointer transition-colors ${isSelecionado ? 'bg-green-100' : 'hover:bg-green-50'}`}
                     >
-                      <td className="p-3 text-gray-800">{c.codigo}</td>
-                      <td className="p-3 text-gray-600">{c.nome}</td>
+                      <td className="p-3 text-gray-800">{c.codigo || c.code}</td>
+                      <td className="p-3 text-gray-600">{c.nome || c.name}</td>
                       <td className="p-3 text-gray-600">{c.cnpj || c.doc}</td>
                     </tr>
                   )
@@ -184,9 +197,10 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
             className="w-full px-4 py-3 mb-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
           />
           <div className="border border-gray-100 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-50 sticky top-0">
+            <table className="w-full text-left border-collapse relative">
+              <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                 <tr className="text-gray-500 text-sm border-b border-gray-100">
+                  <th className="p-3 font-medium w-12 text-center">Sel.</th>
                   <th className="p-3 font-medium">Código</th>
                   <th className="p-3 font-medium">Nome</th>
                   <th className="p-3 font-medium">Tipo</th>
@@ -195,15 +209,26 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
               <tbody className="divide-y divide-gray-100">
                 {produtosFiltrados.map((item, idx) => {
                   const p = item.produto || item
+                  const codigoItem = p.codigo || p.code || '-'
+                  const nomeItem = p.nome || p.name || '-'
+                  const tipoItem = p.tipo || p.type || '-'
+                  
+                  // Verifica se este produto já está no carrinho
+                  const isChecked = produtosSelecionados.some(sel => (sel.produto.codigo || sel.produto.code) === codigoItem)
+
                   return (
-                    <tr 
-                      key={idx} 
-                      onClick={() => handleAdicionarProduto(p)}
-                      className="cursor-pointer hover:bg-green-50 transition-colors"
-                    >
-                      <td className="p-3 text-gray-800">{p.codigo}</td>
-                      <td className="p-3 text-gray-600">{p.nome}</td>
-                      <td className="p-3 text-gray-600">{p.tipo || '-'}</td>
+                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                      <td className="p-3 text-center">
+                        <input 
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => handleToggleProduto(p, e.target.checked)}
+                          className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 cursor-pointer accent-green-600"
+                        />
+                      </td>
+                      <td className="p-3 text-gray-800">{codigoItem}</td>
+                      <td className="p-3 text-gray-600">{nomeItem}</td>
+                      <td className="p-3 text-gray-600">{tipoItem}</td>
                     </tr>
                   )
                 })}
@@ -221,7 +246,7 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
         <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
           <p className="text-sm font-medium text-gray-500 mb-1">Cliente Selecionado:</p>
           <p className="text-gray-800 font-semibold">
-            {clienteSelecionado ? `${clienteSelecionado.nome} (${clienteSelecionado.codigo})` : 'Nenhum'}
+            {clienteSelecionado ? `${clienteSelecionado.nome || clienteSelecionado.name} (${clienteSelecionado.codigo || clienteSelecionado.code})` : 'Nenhum'}
           </p>
         </div>
 
@@ -230,38 +255,45 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
           {produtosSelecionados.length === 0 ? (
             <p className="text-center text-gray-400 text-sm py-8">Vazio. Selecione produtos ao lado.</p>
           ) : (
-            produtosSelecionados.map((item, idx) => (
-              <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative group">
-                <p className="font-medium text-gray-800 text-sm mb-3">
-                  {item.produto.nome} <span className="text-gray-400 font-normal">({item.produto.codigo})</span>
-                </p>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="text-xs text-gray-500">Qtd.</label>
-                    <input 
-                      type="number" min="1" value={item.quantidade}
-                      onChange={(e) => handleAlterarItem(idx, 'quantidade', parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
-                    />
+            produtosSelecionados.map((item, idx) => {
+              // Identifica a medida do produto para exibir dinamicamente (ex: KG, L, UN)
+              const medida = item.produto.medida || item.produto.measure || 'UN'
+              
+              return (
+                <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative group">
+                  <p className="font-medium text-gray-800 text-sm mb-3 pr-6">
+                    {item.produto.nome || item.produto.name} <span className="text-gray-400 font-normal">({item.produto.codigo || item.produto.code})</span>
+                  </p>
+                  
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-green-700">Qtd. ({medida})</label>
+                      <input 
+                        type="number" step="0.01" min="0.01" value={item.quantidade}
+                        onChange={(e) => handleAlterarItem(idx, 'quantidade', parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500">Desc. (R$)</label>
+                      <input 
+                        type="number" step="0.01" min="0" value={item.desconto}
+                        onChange={(e) => handleAlterarItem(idx, 'desconto', parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
+                      />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <label className="text-xs text-gray-500">Desc. (R$)</label>
-                    <input 
-                      type="number" step="0.01" min="0" value={item.desconto}
-                      onChange={(e) => handleAlterarItem(idx, 'desconto', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 mt-1 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:border-green-500"
-                    />
-                  </div>
+                  
+                  <button 
+                    onClick={() => handleRemoverProduto(idx)}
+                    className="absolute top-3 right-3 text-red-400 hover:text-red-600 transition-colors bg-red-50 rounded-full w-6 h-6 flex items-center justify-center"
+                    title="Remover"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleRemoverProduto(idx)}
-                  className="absolute top-3 right-3 text-red-400 hover:text-red-600 transition-colors"
-                  title="Remover"
-                >
-                  ✕
-                </button>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 
