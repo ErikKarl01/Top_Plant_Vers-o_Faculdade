@@ -15,10 +15,12 @@ export function EditarExcluirProduto({ handleBuscarParaEdicao, handleAtualizar, 
   const [nomeBusca, setNomeBusca] = useState('')
   const [codigoOriginal, setCodigoOriginal] = useState('')
   const [produtoEditando, setProdutoEditando] = useState<boolean>(false)
+  
   const [codigo, setCodigo] = useState('')
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState('')
   const [medida, setMedida] = useState('')
+  const [preco, setPreco] = useState('')
   const [descricao, setDescricao] = useState('')
 
   const buscarProduto = async () => {
@@ -28,24 +30,27 @@ export function EditarExcluirProduto({ handleBuscarParaEdicao, handleAtualizar, 
     }
     const p = await handleBuscarParaEdicao(codigoBusca, nomeBusca)
     if (p) {
-      setCodigoOriginal(p.codigo)
-      setCodigo(p.codigo || ''); setNome(p.nome || ''); setTipo(p.tipo || ''); setMedida(p.medida || ''); setDescricao(p.descricao || '');
+      setCodigoOriginal(p.codigo || p.code)
+      setCodigo(p.codigo || p.code || '')
+      setNome(p.nome || p.name || '')
+      setTipo(p.tipo || p.type || '')
+      setMedida(p.medida || p.measure || '')
+      setPreco(p.preco ?? p.price ?? '')
+      setDescricao(p.descricao || p.description || '')
       setProdutoEditando(true)
     } else {
       setProdutoEditando(false)
     }
   }
 
- const aoAtualizar = () => {
+  const aoAtualizar = () => {
     const payload = {
       codigo: codigoOriginal,
-      produto: { codigo, nome, descricao, tipo, medida }
+      produto: { codigo, nome, descricao, tipo, medida, preco }
     }
     
     handleAtualizar(payload)
     
-    // CORREÇÃO: Removemos o setCodigoOriginal problemático.
-    // Em vez disso, fechamos a edição e limpamos a busca para manter a segurança dos dados.
     setProdutoEditando(false)
     setCodigoBusca('')
     setNomeBusca('')
@@ -78,28 +83,44 @@ export function EditarExcluirProduto({ handleBuscarParaEdicao, handleAtualizar, 
         {produtoEditando && (
           <div className="animate-fade-in border-t border-gray-100 pt-8 mt-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-6">Dados do Produto</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="flex flex-col">
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="flex flex-col md:col-span-1">
                 <label className="text-sm font-medium text-gray-700 mb-2">Código</label>
                 <input type="text" value={codigo} onChange={e => setCodigo(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-700 mb-2">Nome</label>
                 <input type="text" value={nome} onChange={e => setNome(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
               </div>
+              
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                <input type="text" value={tipo} onChange={e => setTipo(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
+                <select 
+                  value={tipo} 
+                  onChange={e => setTipo(e.target.value)}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none"
+                >
+                  <option value="">Selecione o tipo...</option>
+                  <option value="HORTALICAS">Hortaliças</option>
+                  <option value="ORNAMENTAIS">Ornamentais</option>
+                </select>
               </div>
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-2">Medida</label>
                 <input type="text" value={medida} onChange={e => setMedida(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
               </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-2">Preço Unit. (R$)</label>
+                <input type="number" step="0.01" min="0" value={preco} onChange={e => setPreco(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none" />
+              </div>
             </div>
+
             <div className="flex flex-col mb-8">
               <label className="text-sm font-medium text-gray-700 mb-2">Descrição</label>
               <textarea value={descricao} onChange={e => setDescricao(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none min-h-[120px] resize-y"></textarea>
             </div>
+
             <div className="flex flex-col md:flex-row gap-4">
               <button onClick={aoAtualizar} disabled={!!busy} className="flex-1 py-3 bg-[#4BAF47] hover:bg-[#3D943A] text-white font-medium rounded-xl transition-colors">Atualizar Produto</button>
               <button onClick={aoExcluir} disabled={!!busy} className="flex-1 py-3 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white font-medium rounded-xl transition-colors">Excluir Produto</button>

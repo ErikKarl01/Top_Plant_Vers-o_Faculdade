@@ -342,26 +342,25 @@ return (
               return null
             }}
             handleAtualizar={async (payload) => {
-                setBusy('produto-atualizar')
-                
-                console.log("atualizar:",payload)
-                // Manda os dados exatos que o ProductDTO exige
-                const result = await requestJson('/product/update/', 'POST', {
-                  code_product: payload.codigo,
-                  product: {
-                    code: payload.produto.codigo,
-                    name: payload.produto.nome,
-                    description: payload.produto.descricao,
-                    type: payload.produto.tipo,
-                    measure: payload.produto.medida,
-                    price: 0 // Removido o discount daqui!
-                  }
-                })
-                console.log("atualizar:",result)
-                setResponse(result)
-                setBusy(null)
-                await loadLists() // Atualiza a tabela global com a edição
-              }}
+              setBusy('produto-atualizar')
+              
+              const result = await requestJson('/product/update/', 'POST', {
+                code_product: payload.codigo,
+                product: {
+                  code: payload.produto.codigo,
+                  name: payload.produto.nome,
+                  description: payload.produto.descricao,
+                  type: payload.produto.tipo,
+                  measure: payload.produto.medida,
+                  // ↓ Puxando o preço que a tela enviou ↓
+                  price: Number(payload.produto.preco || 0) 
+                }
+              })
+              
+              setResponse(result)
+              setBusy(null)
+              await loadLists()
+            }}
             handleExcluir={async (codigo) => {
               setBusy('produto-excluir')
               // Rota de deletar (verifique se a url no Django é essa mesma)

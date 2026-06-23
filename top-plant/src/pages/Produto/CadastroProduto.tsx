@@ -13,17 +13,19 @@ export function CadastroProduto({ handleCadastrar, busy, response }: CadastroPro
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState('')
   const [medida, setMedida] = useState('')
+  const [preco, setPreco] = useState('') // <-- NOVO ESTADO
   const [descricao, setDescricao] = useState('')
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
     const payload = {
-      produto: { codigo, nome, descricao, tipo, medida }
+      // <-- INCLUINDO O PREÇO NO PACOTE
+      produto: { codigo, nome, descricao, tipo, medida, preco } 
     }
     handleCadastrar(payload)
     
     if (busy !== 'produto-save') {
-      setCodigo(''); setNome(''); setTipo(''); setMedida(''); setDescricao('');
+      setCodigo(''); setNome(''); setTipo(''); setMedida(''); setPreco(''); setDescricao('');
     }
   }
 
@@ -34,29 +36,30 @@ export function CadastroProduto({ handleCadastrar, busy, response }: CadastroPro
           <h2 className="text-2xl font-semibold text-gray-800">Novo Produto</h2>
           <p className="text-gray-500 text-sm mt-1">Cadastre as informações e especificações do produto.</p>
           
-          {/* Adicionado o componente de feedback visual aqui */}
           <div className="mt-4">
             <MensagemRetorno response={response} />
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col">
+          {/* Mudei para 3 colunas em telas grandes para caber o preço bonito */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col md:col-span-1">
               <label className="text-sm font-medium text-gray-700 mb-2">Código</label>
               <input 
                 type="text" required value={codigo} onChange={e => setCodigo(e.target.value)}
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col md:col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-2">Nome</label>
               <input 
                 type="text" required value={nome} onChange={e => setNome(e.target.value)}
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
-           <div className="flex flex-col">
+            
+            <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">Tipo</label>
               <select 
                 required 
@@ -73,6 +76,13 @@ export function CadastroProduto({ handleCadastrar, busy, response }: CadastroPro
               <label className="text-sm font-medium text-gray-700 mb-2">Medida</label>
               <input 
                 type="text" required value={medida} onChange={e => setMedida(e.target.value)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-2">Preço Base (R$)</label>
+              <input 
+                type="number" step="0.01" min="0" required value={preco} onChange={e => setPreco(e.target.value)}
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
