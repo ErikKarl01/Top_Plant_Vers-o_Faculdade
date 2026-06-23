@@ -80,13 +80,20 @@ class Service:
     
     def productList(self):
         productList = self.p_model.productList()
-        if not productList:
+        
+        if not productList or productList == [None]:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+            
         product_list_dict = []
         try:
             for product in productList:
-                product_dict = self.convert.toDict(product)
-                product_list_dict.append(product_dict)
+                if product is not None:
+                    product_dict = self.convert.toDict(product)
+                    product_list_dict.append(product_dict)
+                    
+            if not product_list_dict:
+                return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+                
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage=Success.RETURN, value=product_list_dict)
@@ -120,12 +127,15 @@ class Service:
             product = self.p_model.productReturn(code_product=code_product, name=name)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
+            
+        if product is None or product == [None] or not product:
+            return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+            
         try:
             product = self.convert.toDict(product)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
-        if not product:
-            return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+            
         return self.response.sucessMens(mensage=Success.RETURN, value=product)
     
     
