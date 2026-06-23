@@ -10,7 +10,6 @@ export function Home({ setSection }: HomeProps) {
     { id: 'cliente', title: 'Clientes', subtitle: 'Cadastro e gestão' },
     { id: 'produto', title: 'Produtos', subtitle: 'Catálogo de produtos' },
     { id: 'pedido', title: 'Pedidos', subtitle: 'Registrar pedidos' },
-    { id: 'estoque', title: 'Estoque', subtitle: 'Movimentação' },
   ]
 
   return (

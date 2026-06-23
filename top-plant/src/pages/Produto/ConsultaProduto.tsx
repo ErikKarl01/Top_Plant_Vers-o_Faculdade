@@ -39,6 +39,7 @@ export function ConsultaProduto({
             placeholder="Buscar por código..." 
             value={productSearch} 
             onChange={e => setProductSearch(e.target.value)}
+            required
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
           />
         </div>

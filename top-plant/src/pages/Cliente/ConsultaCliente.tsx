@@ -1,12 +1,13 @@
 import type { FormEvent } from 'react'
 import type { ApiResponse } from '../../App'
 import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
+import type { ClientLookupItem } from '../../types/client'
 
 type ConsultaClienteProps = {
   clientSearch: string
   setClientSearch: (val: string) => void
   handleClientSearch: (e: FormEvent) => void
-  clientList: any[]
+  clientList: ClientLookupItem[]
   busy: string | null
   response: ApiResponse | null
 }
@@ -49,22 +50,39 @@ export function ConsultaCliente({
                 <th className="p-4 font-medium">Nome</th>
                 <th className="p-4 font-medium">Documento</th>
                 <th className="p-4 font-medium">Contato</th>
+                <th className="p-4 font-medium">Endereço</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {clientList.length > 0 ? (
-                clientList.map((item: any, index) => (
+                clientList.map((item, index) => {
+                  const client = item.client || {}
+                  const adress = item.adress || undefined
+                  const addressLabel = adress
+                    ? [
+                        adress.code_zone,
+                        adress.people_place,
+                        adress.neig_b,
+                        adress.number,
+                        adress.city,
+                        adress.type,
+                      ].filter(Boolean).join(' - ')
+                    : 'Sem endereço cadastrado'
+
+                  return (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-gray-800 font-medium">{item.client?.code || '-'}</td>
-                    <td className="p-4 text-gray-600">{item.client?.name || 'Cliente sem nome'}</td>
-                    <td className="p-4 text-gray-600">{item.client?.doc || '-'}</td>
-                    <td className="p-4 text-gray-600">{item.client?.contact || '-'}</td>
+                    <td className="p-4 text-gray-800 font-medium">{client.code || '-'}</td>
+                    <td className="p-4 text-gray-600">{client.name || 'Cliente sem nome'}</td>
+                    <td className="p-4 text-gray-600">{client.doc || '-'}</td>
+                    <td className="p-4 text-gray-600">{client.contact || '-'}</td>
+                    <td className="p-4 text-gray-600">{addressLabel}</td>
                   </tr>
-                ))
+                  )
+                })
               ) : (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-400">
-                    Nenhum cliente encontrado na listagem.
+                  <td colSpan={5} className="p-8 text-center text-gray-400">
+                    Nenhum cliente buscado ainda.
                   </td>
                 </tr>
               )}

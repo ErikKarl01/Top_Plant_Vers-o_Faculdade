@@ -8,34 +8,15 @@ import { ExclusaoCliente } from './pages/Cliente/ExclusaoCliente'
 import { CadastroProduto } from './pages/Produto/CadastroProduto'
 import { ConsultaProduto } from './pages/Produto/ConsultaProduto'
 import { EditarExcluirProduto } from './pages/Produto/EditarExcluirProduto'
-import { Estoque } from './pages/Estoque/Estoque'
 import { CadastroPedido } from './pages/Pedido/CadastroPedido'
 import { ConsultaPedido } from './pages/Pedido/ConsultaPedido'
+import { type AdressDTO, type ClientDTO, type ClientLookupItem } from './types/client'
 
 export type ApiResponse = {
   status?: number
   mensage?: string | string[]
   sucess?: boolean
   value?: unknown
-}
-
-type ClientForm = {
-  code: string
-  name: string
-  doc_type: string
-  doc: string
-  contact: string
-  email: string
-  state_register: string
-}
-
-type AddressForm = {
-  code_zone: string
-  city: string
-  people_place: string
-  neig_b: string
-  number: string
-  type: string
 }
 
 type ProductForm = {
@@ -51,7 +32,7 @@ type ProductForm = {
 
 // const apiBase = '/api'
 
-const defaultClient: ClientForm = {
+const defaultClient: ClientDTO = {
   code: '',
   name: '',
   doc_type: 'CPF',
@@ -61,7 +42,7 @@ const defaultClient: ClientForm = {
   state_register: '',
 }
 
-const defaultAddress: AddressForm = {
+const defaultAddress: AdressDTO = {
   code_zone: '',
   city: '',
   people_place: 'RUA',
@@ -132,7 +113,8 @@ function App() {
   const [clientForm, setClientForm] = useState(defaultClient)
   const [addressForm, setAddressForm] = useState(defaultAddress)
   const [productForm, setProductForm] = useState(defaultProduct)
-  const [clientList, setClientList] = useState<unknown[]>([])
+  const [clientList, setClientList] = useState<ClientLookupItem[]>([])
+  const [clientSearchList, setClientSearchList] = useState<ClientLookupItem[]>([])
   const [productList, setProductList] = useState<unknown[]>([])
   const [clientSearch, setClientSearch] = useState('')
   const [productSearch, setProductSearch] = useState('')
@@ -162,7 +144,7 @@ function App() {
       console.log("🔍 [DEBUG] Retorno da Rota de Produtos:", products)
       console.log("🔍 [DEBUG] A lista de produtos real:", products.value)
 
-      if (clients.sucess && Array.isArray(clients.value)) setClientList(clients.value)
+      if (clients.sucess && Array.isArray(clients.value)) setClientList(clients.value as ClientLookupItem[])
       if (products.sucess && Array.isArray(products.value)) setProductList(products.value)
     } catch {
       setClientList([])
@@ -193,10 +175,24 @@ function App() {
   async function handleClientSearch(event: FormEvent) {
     event.preventDefault()
     setBusy('client-search')
+
+    if (!clientSearch.trim()) {
+      setClientSearchList([])
+      setResponse(null)
+      setBusy(null)
+      return
+    }
+
     const result = await requestJson('/client/search/', 'POST', {
       code_client: clientSearch,
     })
     setResponse(result)
+    if (result.sucess && result.value) {
+      const clientLookup = Array.isArray(result.value) ? result.value : [result.value]
+      setClientSearchList(clientLookup as ClientLookupItem[])
+    } else {
+      setClientSearchList([])
+    }
     setBusy(null)
   }
 
@@ -280,8 +276,8 @@ return (
         {section === 'cliente-consulta' && (
           <ConsultaCliente 
             clientSearch={clientSearch} setClientSearch={setClientSearch}
-            handleClientSearch={handleClientSearch} clientList={clientList} busy={busy}
-            response={response} // <-- Adicionado
+            handleClientSearch={handleClientSearch} clientList={clientSearch.trim() ? clientSearchList : clientList} busy={busy}
+            response={response}
           />
         )}
         {section === 'cliente-excluir' && (
@@ -376,14 +372,7 @@ return (
           />
         )}
 
-        {/* === ESTOQUE === */}
-        {section === 'estoque' && (
-          <Estoque 
-            estoqueList={[]} 
-            processarAcaoEstoque={(acao, codProd, qtd) => { /* Chame sua API de estoque aqui */ }}
-            busy={busy}
-          />
-        )}
+        {/* Estoque removido do frontend */}
 
         {/* === PEDIDOS === */}
         {section === 'pedido' && (

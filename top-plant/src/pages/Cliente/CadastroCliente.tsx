@@ -1,18 +1,19 @@
 import type { FormEvent } from 'react'
 import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 import type { ApiResponse } from '../../App'
+import type { AdressDTO, ClientDTO, ClientListItem } from '../../types/client'
 
 // Adicionamos a lista de clientes na tipagem
 type CadastroClienteProps = {
-  clientForm: any
-  setClientForm: (val: any) => void
-  addressForm: any
-  setAddressForm: (val: any) => void
+  clientForm: ClientDTO
+  setClientForm: (val: ClientDTO) => void
+  addressForm: AdressDTO
+  setAddressForm: (val: AdressDTO) => void
   handleClientSave: (e: FormEvent) => void
   handleAddressSave: (e: FormEvent) => void
   busy: string | null
   response: ApiResponse | null
-  clientList: any[] // <-- Adicionado aqui
+  clientList: ClientListItem[]
 }
 
 export function CadastroCliente({
@@ -41,6 +42,7 @@ export function CadastroCliente({
                 type="text" 
                 value={clientForm.name} 
                 onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-gray-700"
                 placeholder="Nome completo ou Razão Social"
               />
@@ -51,6 +53,7 @@ export function CadastroCliente({
                 type="text" 
                 value={clientForm.code} 
                 onChange={(e) => setClientForm({ ...clientForm, code: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -61,7 +64,8 @@ export function CadastroCliente({
               <div className="flex gap-2">
                 <select 
                   value={clientForm.doc_type}
-                  onChange={(e) => setClientForm({ ...clientForm, doc_type: e.target.value })}
+                    onChange={(e) => setClientForm({ ...clientForm, doc_type: e.target.value })}
+                    required
                   className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
                 >
                   <option value="CPF">CPF</option>
@@ -71,6 +75,7 @@ export function CadastroCliente({
                   type="text" 
                   value={clientForm.doc} 
                   onChange={(e) => setClientForm({ ...clientForm, doc: e.target.value })}
+                  required
                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
                   placeholder="Apenas números"
                 />
@@ -82,6 +87,7 @@ export function CadastroCliente({
                 type="text" 
                 value={clientForm.contact} 
                 onChange={(e) => setClientForm({ ...clientForm, contact: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -91,6 +97,7 @@ export function CadastroCliente({
                 type="email" 
                 value={clientForm.email} 
                 onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -100,6 +107,7 @@ export function CadastroCliente({
                 type="text" 
                 value={clientForm.state_register} 
                 onChange={(e) => setClientForm({ ...clientForm, state_register: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -137,10 +145,18 @@ export function CadastroCliente({
               >
                 <option value="">Selecione um cliente cadastrado...</option>
                 {clientList && clientList.map((item, idx) => {
-                  // Mapeamento "à prova de falhas" (pega inglês ou português)
-                  const c = item.client || item.cliente || item;
-                  const codigoItem = c.code || c.codigo;
-                  const nomeItem = c.name || c.nome || 'Sem nome';
+                  // Normaliza o retorno da API antes de montar a opção.
+                  const c = item as {
+                    client?: { code?: string; codigo?: string; name?: string; nome?: string }
+                    cliente?: { code?: string; codigo?: string; name?: string; nome?: string }
+                    code?: string
+                    codigo?: string
+                    name?: string
+                    nome?: string
+                  }
+                  const selectedClient = c.client || c.cliente || c
+                  const codigoItem = selectedClient.code || selectedClient.codigo
+                  const nomeItem = selectedClient.name || selectedClient.nome || 'Sem nome'
 
                   // Se o cliente não tiver código, a gente ignora
                   if (!codigoItem) return null; 
@@ -160,6 +176,7 @@ export function CadastroCliente({
                 type="text" 
                 value={addressForm.code_zone} 
                 onChange={(e) => setAddressForm({ ...addressForm, code_zone: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -169,6 +186,7 @@ export function CadastroCliente({
                 type="text" 
                 value={addressForm.city} 
                 onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
@@ -177,6 +195,7 @@ export function CadastroCliente({
               <select 
                 value={addressForm.people_place} 
                 onChange={(e) => setAddressForm({ ...addressForm, people_place: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
               >
                 <option value="RUA">Rua</option>
@@ -185,13 +204,16 @@ export function CadastroCliente({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">Bairro</label>
-              <input 
-                type="text" 
-                value={addressForm.neig_b} 
-                onChange={(e) => setAddressForm({ ...addressForm, neig_b: e.target.value })}
-                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
-              />
+              <label className="text-sm font-medium text-gray-700 mb-2">Tipo de Endereço</label>
+              <select 
+                value={addressForm.type} 
+                onChange={(e) => setAddressForm({ ...addressForm, type: e.target.value })}
+                required
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
+              >
+                <option value="COMERCIAL">Comercial</option>
+                <option value="RESIDENCIAL">Residencial</option>
+              </select>
             </div>
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">Número</label>
@@ -199,6 +221,17 @@ export function CadastroCliente({
                 type="text" 
                 value={addressForm.number} 
                 onChange={(e) => setAddressForm({ ...addressForm, number: e.target.value })}
+                required
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-2">Bairro</label>
+              <input 
+                type="text" 
+                value={addressForm.neig_b} 
+                onChange={(e) => setAddressForm({ ...addressForm, neig_b: e.target.value })}
+                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>

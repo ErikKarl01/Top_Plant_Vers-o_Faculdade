@@ -6,7 +6,7 @@ export type Section =
   | 'cliente' | 'cliente-consulta' | 'cliente-excluir' 
   | 'produto' | 'produto-consulta' | 'produto-editar' 
   | 'pedido' | 'pedido-consulta' 
-  | 'estoque' 
+  
 
 type NavbarProps = {
   setSection: Dispatch<SetStateAction<Section>>
@@ -77,10 +77,7 @@ export function Navbar({ setSection }: NavbarProps) {
           </div>
         </div>
 
-        {/* Links Diretos - Avarias removido daqui */}
-        <button onClick={() => setSection('estoque')} className="text-gray-600 hover:text-figma-green font-semibold hover:text-white transition-colors">
-          Estoque
-        </button>
+        {/* Links Diretos */}
 
       </div>
     </nav>
