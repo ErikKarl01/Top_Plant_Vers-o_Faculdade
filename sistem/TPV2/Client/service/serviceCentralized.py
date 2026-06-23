@@ -135,19 +135,20 @@ class ServiceCentralized:
         for client in clients:
             response_adress = self.a_service.adressReturn(code_client=client.code)
 
-            if not response_adress.sucess:
-                return response_adress.toDict()
-
             try:
                 client_dict = self.convert_client.toDict(client=client)
-                adress_dict = self.convert_adress.toDict(adress=response_adress.value)
+                
+                if response_adress.sucess and response_adress.value is not None:
+                    adress_dict = self.convert_adress.toDict(adress=response_adress.value)
+                else:
+                    adress_dict = None 
+                    
             except Exception:
                 return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
 
             list_return.append({'client': client_dict, 'adress': adress_dict})
 
         return Response().sucessMens(mensage, list_return).toDict()
-
 
     def modifyResponse(self, code_client: str, clientDTO: ClientDTO, adressDTO: AdressDTO):
         client_clean = cleanClient(clientDTO)
