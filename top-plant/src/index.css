@@ -1,19 +1,45 @@
 @import "tailwindcss";
 
 @theme {
-  --color-figma-green: #4BAF47;      
-  --color-figma-green-hover: #3D943A;
-  
-  --color-figma-bg: #F3F4F6;;        
-  --color-figma-card: #FFFFFF;     
-  
-  --color-figma-title: #1F2937;      
-  --color-figma-text: #6B7280;       
+  --color-figma-green: #4B9D57;
+  --color-figma-green-hover: #3F8747;
+
+  --color-figma-bg: #D9E0EB;
+  --color-figma-card: #FFFFFF;
+
+  --color-figma-title: #1F2937;
+  --color-figma-text: #667085;
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    background-color: var(--color-figma-bg);
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 46%),
+      linear-gradient(180deg, #e5ebf3 0%, var(--color-figma-bg) 100%);
     color: var(--color-figma-text);
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-figma-title);
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: -0.02em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
   }
 }

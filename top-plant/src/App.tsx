@@ -278,11 +278,11 @@ async function handleProductSearch(event: FormEvent) {
   }
 
 return (
-    <div className="min-h-screen bg-gray-200 flex flex-col font-sans">
+    <div className="app-shell min-h-screen flex flex-col font-sans">
       {/* Navbar global controlando as rotas */}
       <Navbar setSection={setSection} />
 
-      <main className="flex-1 w-full p-4 md:p-8">
+      <main className="app-main flex-1 w-full px-4 py-6 md:px-8 md:py-10">
         
         {/* === CORE === */}
         {section === 'inicio' && <Home setSection={setSection} />}
