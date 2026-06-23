@@ -1,13 +1,15 @@
 import type { FormEvent } from 'react'
+import type { ApiResponse } from '../../App'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 
 type ConsultaProdutoProps = {
   productList: any[]
-  // Recebendo os estados originais do App.tsx
   productSearch: string
   setProductSearch: (val: string) => void
   handleBuscar: (e: FormEvent) => void
   handleLimpar: () => void
   busy: string | null
+  response: ApiResponse | null
 }
 
 export function ConsultaProduto({ 
@@ -16,7 +18,8 @@ export function ConsultaProduto({
   setProductSearch, 
   handleBuscar, 
   handleLimpar, 
-  busy 
+  busy,
+  response 
 }: ConsultaProdutoProps) {
   
   const aoLimpar = () => {
@@ -27,12 +30,14 @@ export function ConsultaProduto({
   return (
     <div className="max-w-6xl mx-auto animate-fade-in space-y-6">
       
-      {/* Transformamos os filtros em um form para o FormEvent do App.tsx funcionar */}
+      {/* Alerta Visual de Busca */}
+      <MensagemRetorno response={response} />
+
       <form onSubmit={handleBuscar} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <input 
             type="text" 
-            placeholder="Buscar por código (conforme lógica original)" 
+            placeholder="Buscar por código..." 
             value={productSearch} 
             onChange={e => setProductSearch(e.target.value)}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"

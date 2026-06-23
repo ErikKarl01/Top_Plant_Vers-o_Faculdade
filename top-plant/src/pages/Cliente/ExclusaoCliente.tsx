@@ -1,19 +1,30 @@
 import { useState } from 'react'
+import type { ApiResponse } from '../../App'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 
-export function ExclusaoCliente() {
+// Adicionada a tipagem para receber a resposta e a função de deletar
+type ExclusaoClienteProps = {
+  handleDeleteClient?: (doc: string) => void
+  busy?: string | null
+  response: ApiResponse | null
+}
+
+export function ExclusaoCliente({ handleDeleteClient, busy, response }: ExclusaoClienteProps) {
   const [docExclude, setDocExclude] = useState('')
 
-  // Esta função ficará pronta para você plugar no App.tsx futuramente
   function handleDelete() {
     if(!docExclude) return
     const confirm = window.confirm('Tem certeza absoluta que deseja excluir este cliente?')
-    if(confirm) {
-      // alert('Disparar props.handleDelete(docExclude) aqui!')
+    if(confirm && handleDeleteClient) {
+      handleDeleteClient(docExclude)
     }
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-10 animate-fade-in">
+    <div className="max-w-xl mx-auto mt-10 animate-fade-in space-y-6">
+      
+      <MensagemRetorno response={response} />
+
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-red-100">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-bold text-xl">
@@ -40,9 +51,10 @@ export function ExclusaoCliente() {
 
           <button 
             onClick={handleDelete}
-            className="w-full px-8 py-3 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white font-medium rounded-xl transition-colors mt-4"
+            disabled={busy === 'client-delete'}
+            className="w-full px-8 py-3 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white font-medium rounded-xl transition-colors mt-4 disabled:opacity-70"
           >
-            Excluir Permanentemente
+            {busy === 'client-delete' ? 'Excluindo...' : 'Excluir Permanentemente'}
           </button>
         </div>
       </div>

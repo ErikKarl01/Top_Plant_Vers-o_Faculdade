@@ -1,4 +1,6 @@
 import type { FormEvent } from 'react'
+import type { ApiResponse } from '../../App'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 
 type ConsultaClienteProps = {
   clientSearch: string
@@ -6,15 +8,18 @@ type ConsultaClienteProps = {
   handleClientSearch: (e: FormEvent) => void
   clientList: any[]
   busy: string | null
+  response: ApiResponse | null
 }
 
 export function ConsultaCliente({ 
-  clientSearch, setClientSearch, handleClientSearch, clientList, busy 
+  clientSearch, setClientSearch, handleClientSearch, clientList, busy, response 
 }: ConsultaClienteProps) {
   
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
-      {/* Barra de Busca */}
+      
+      <MensagemRetorno response={response} />
+
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-end">
         <div className="flex-1 w-full">
           <label className="text-sm font-medium text-gray-700 mb-2 block">Buscar Cliente por Código</label>
@@ -35,7 +40,6 @@ export function ConsultaCliente({
         </button>
       </div>
 
-      {/* Tabela de Resultados (Estilo Figma) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">

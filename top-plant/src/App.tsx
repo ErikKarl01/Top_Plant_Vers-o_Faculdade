@@ -12,7 +12,7 @@ import { Estoque } from './pages/Estoque/Estoque'
 import { CadastroPedido } from './pages/Pedido/CadastroPedido'
 import { ConsultaPedido } from './pages/Pedido/ConsultaPedido'
 
-type ApiResponse = {
+export type ApiResponse = {
   status?: number
   mensage?: string | string[]
   sucess?: boolean
@@ -150,6 +150,7 @@ function App() {
 
   async function loadLists() {
     try {
+
       const [clients, products] = await Promise.all([
         requestJson('/client/list/', 'GET'),
         requestJson('/product/list/', 'GET'),
@@ -193,16 +194,23 @@ function App() {
     setBusy(null)
   }
 
-  async function handleProductSave(event: FormEvent) {
-    event.preventDefault()
+  async function handleProductSave(payloadRecebido: any) {
     setBusy('product-save')
+
+    // Pega os dados brutos que vieram do formulário (em português)
+    const p = payloadRecebido.produto || payloadRecebido;
+    // Traduz para o inglês enviando APENAS o que o formulário possui
     const result = await requestJson('/product/save/', 'POST', {
       product: {
-        ...productForm,
-        price: Number(productForm.price || 0),
-        discount: Number(productForm.discount || 0),
+        code: p.codigo || '',
+        name: p.nome || '',
+        description: p.descricao || '',
+        type: (p.tipo || '').toUpperCase().trim(),
+        measure: (p.medida || '').toUpperCase().trim()
       },
     })
+    
+
     setResponse(result)
     setBusy(null)
     await loadLists()
@@ -235,28 +243,40 @@ return (
             addressForm={addressForm} setAddressForm={setAddressForm}
             handleClientSave={handleClientSave} handleAddressSave={handleAddressSave}
             busy={busy}
+            response={response} 
+            clientList={clientList}
           />
         )}
         {section === 'cliente-consulta' && (
           <ConsultaCliente 
             clientSearch={clientSearch} setClientSearch={setClientSearch}
             handleClientSearch={handleClientSearch} clientList={clientList} busy={busy}
+            response={response} // <-- Adicionado
           />
         )}
-        {section === 'cliente-excluir' && <ExclusaoCliente />}
+        {section === 'cliente-excluir' && (
+          <ExclusaoCliente 
+            response={response} // <-- Adicionado
+          />
+        )}
 
         {/* === PRODUTOS === */}
         {section === 'produto' && (
-          <CadastroProduto handleCadastrar={handleProductSave} busy={busy} />
+          <CadastroProduto 
+            handleCadastrar={handleProductSave} 
+            busy={busy} 
+            response={response} // <-- Adicionado
+          />
         )}
         {section === 'produto-consulta' && (
           <ConsultaProduto 
             productList={productList} 
             productSearch={productSearch}
             setProductSearch={setProductSearch}
-            handleBuscar={handleProductSearch} // Passa a função original intacta
+            handleBuscar={handleProductSearch} 
             handleLimpar={() => loadLists()} 
             busy={busy} 
+            response={response}
           />
         )}
         {section === 'produto-editar' && (
@@ -265,13 +285,14 @@ return (
             handleAtualizar={() => { /* Chame sua API aqui */ }}
             handleExcluir={() => { /* Chame sua API aqui */ }}
             busy={busy}
+            response={response} // <-- Adicionado
           />
         )}
 
         {/* === ESTOQUE === */}
         {section === 'estoque' && (
           <Estoque 
-            estoqueList={[]} // Crie um estado [estoqueList, setEstoqueList] depois e passe aqui
+            estoqueList={[]} 
             processarAcaoEstoque={(acao, codProd, qtd) => { /* Chame sua API de estoque aqui */ }}
             busy={busy}
           />
@@ -284,13 +305,15 @@ return (
             productList={productList} 
             handleSalvarPedido={(payload) => { /* Chame sua API de salvar pedido */ }} 
             busy={busy}
+            response={response} // <-- Adicionado
           />
         )}
         {section === 'pedido-consulta' && (
           <ConsultaPedido 
-            pedidosList={[]} // Crie um estado [pedidosList, setPedidosList] depois e passe aqui
+            pedidosList={[]} 
             handleBuscarPedidos={(filtros) => { /* Chame sua API de filtro de pedidos */ }} 
             busy={busy}
+            response={response} // <-- Adicionado
           />
         )}
 

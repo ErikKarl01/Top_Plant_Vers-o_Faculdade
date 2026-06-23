@@ -1,12 +1,16 @@
+import type { ApiResponse } from '../../App'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 import { useState } from 'react'
 
 type ConsultaPedidoProps = {
   pedidosList: any[]
   handleBuscarPedidos: (filtros: any) => void
   busy: string | null
+  
+  response: ApiResponse | null
 }
 
-export function ConsultaPedido({ pedidosList, handleBuscarPedidos, busy }: ConsultaPedidoProps) {
+export function ConsultaPedido({ pedidosList, handleBuscarPedidos, busy ,response}: ConsultaPedidoProps) {
   const [codigoPedido, setCodigoPedido] = useState('')
   const [codigoCliente, setCodigoCliente] = useState('')
   const [statusPedido, setStatusPedido] = useState('')
@@ -42,6 +46,7 @@ export function ConsultaPedido({ pedidosList, handleBuscarPedidos, busy }: Consu
       {/* Coluna Esquerda: Filtros e Tabela */}
       <div className="lg:col-span-2 bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col h-full">
         <div className="mb-6 border-b border-gray-100 pb-4">
+          <MensagemRetorno response={response} />
           <h2 className="text-xl font-semibold text-gray-800">Consulta de Pedidos</h2>
         </div>
 

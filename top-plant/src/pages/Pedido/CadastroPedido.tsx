@@ -1,3 +1,5 @@
+import type { ApiResponse } from '../../App'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
 import { useState, useMemo } from 'react'
 
 type ProdutoSelecionado = {
@@ -12,9 +14,10 @@ type CadastroPedidoProps = {
   // Função que o App.tsx vai passar para enviar o payload montado
   handleSalvarPedido: (payload: any) => void
   busy: string | null
+  response: ApiResponse | null
 }
 
-export function CadastroPedido({ clientList, productList, handleSalvarPedido, busy }: CadastroPedidoProps) {
+export function CadastroPedido({ clientList, productList, handleSalvarPedido, busy,response }: CadastroPedidoProps) {
   // Estados do formulário
   const [codigoPedido, setCodigoPedido] = useState('')
   const [nomeVendedor, setNomeVendedor] = useState('')
@@ -107,7 +110,7 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
       
       {/* Coluna Esquerda: Dados, Clientes e Produtos */}
       <div className="lg:col-span-8 flex flex-col gap-6">
-        
+        <MensagemRetorno response={response} />
         {/* Card 1: Dados Base */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Dados do Pedido</h2>

@@ -1,6 +1,8 @@
 import type { FormEvent } from 'react'
+import { MensagemRetorno } from '../../components/layout/MensagemRetorno'
+import type { ApiResponse } from '../../App'
 
-// Tipagens baseadas no seu App.tsx
+// Adicionamos a lista de clientes na tipagem
 type CadastroClienteProps = {
   clientForm: any
   setClientForm: (val: any) => void
@@ -9,20 +11,26 @@ type CadastroClienteProps = {
   handleClientSave: (e: FormEvent) => void
   handleAddressSave: (e: FormEvent) => void
   busy: string | null
+  response: ApiResponse | null
+  clientList: any[] // <-- Adicionado aqui
 }
 
 export function CadastroCliente({
   clientForm, setClientForm,
   addressForm, setAddressForm,
-  handleClientSave, handleAddressSave, busy
+  handleClientSave, handleAddressSave, busy, response, clientList
 }: CadastroClienteProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+      
       {/* Bloco: Dados do Cliente */}
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
         <div className="mb-6 border-b border-gray-100 pb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Novo Cliente</h2>
           <p className="text-gray-500 text-sm mt-1">Cadastre os dados do cliente e depois registre o endereço.</p>
+          <div className="mt-4">
+            <MensagemRetorno response={response} />
+          </div>
         </div>
 
         <form onSubmit={handleClientSave} className="space-y-6">
@@ -108,15 +116,44 @@ export function CadastroCliente({
         </form>
       </div>
 
-      {/* Bloco: Endereço (Mantendo a lógica de separação que havia no seu HTML) */}
+      {/* Bloco: Endereço */}
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
         <div className="mb-6 border-b border-gray-100 pb-4">
           <h3 className="text-xl font-semibold text-gray-800">Endereço</h3>
-          <p className="text-gray-500 text-sm mt-1">Vincule o endereço ao cliente recém-cadastrado.</p>
+          <p className="text-gray-500 text-sm mt-1">Vincule o endereço a um cliente existente ou recém-cadastrado.</p>
         </div>
 
         <form onSubmit={handleAddressSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Cliente para o Endereço */}
+            <div className="flex flex-col md:col-span-3">
+              <label className="text-sm font-medium text-gray-700 mb-2">Vincular a qual Cliente?</label>
+              <select 
+                required
+                value={clientForm.code} 
+                onChange={(e) => setClientForm({ ...clientForm, code: e.target.value })}
+                className="px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700 shadow-sm"
+              >
+                <option value="">Selecione um cliente cadastrado...</option>
+                {clientList && clientList.map((item, idx) => {
+                  // Mapeamento "à prova de falhas" (pega inglês ou português)
+                  const c = item.client || item.cliente || item;
+                  const codigoItem = c.code || c.codigo;
+                  const nomeItem = c.name || c.nome || 'Sem nome';
+
+                  // Se o cliente não tiver código, a gente ignora
+                  if (!codigoItem) return null; 
+
+                  return (
+                    <option key={idx} value={codigoItem}>
+                      {nomeItem} (Cód: {codigoItem})
+                    </option>
+                  )
+                })}
+              </select>
+            </div>
+
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">CEP (Cód. Zona)</label>
               <input 
