@@ -155,6 +155,12 @@ function App() {
         requestJson('/client/list/', 'GET'),
         requestJson('/product/list/', 'GET'),
       ])
+      console.log("🔍 [DEBUG] Retorno da Rota de Clientes:", clients)
+      console.log("🔍 [DEBUG] A lista de clientes real:", clients.value)
+
+      
+      console.log("🔍 [DEBUG] Retorno da Rota de Produtos:", products)
+      console.log("🔍 [DEBUG] A lista de produtos real:", products.value)
 
       if (clients.sucess && Array.isArray(clients.value)) setClientList(clients.value)
       if (products.sucess && Array.isArray(products.value)) setProductList(products.value)
@@ -216,13 +222,36 @@ function App() {
     await loadLists()
   }
 
-  async function handleProductSearch(event: FormEvent) {
+async function handleProductSearch(event: FormEvent) {
     event.preventDefault()
     setBusy('product-search')
+
+    // 1. Se o usuário clicar em buscar com a barra vazia, recarrega a lista toda
+    if (!productSearch.trim()) {
+      await loadLists()
+      setResponse(null)
+      setBusy(null)
+      return
+    }
+
+    // Faz a busca no backend
     const result = await requestJson('/product/return/', 'POST', {
       code_product: productSearch,
     })
+    
     setResponse(result)
+
+    // 2. Lógica para atualizar a tabela na tela
+    if (result.sucess && result.value) {
+      // Se achou, substitui a lista toda por apenas este produto.
+      // (O React exige um Array. Se o backend mandou um objeto solto, transformamos em array).
+      const produtoEncontrado = Array.isArray(result.value) ? result.value : [result.value]
+      setProductList(produtoEncontrado)
+    } else {
+      // Se deu erro (produto não existe), deixa a tabela vazia!
+      setProductList([])
+    }
+
     setBusy(null)
   }
 

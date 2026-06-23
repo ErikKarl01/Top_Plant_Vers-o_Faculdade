@@ -79,13 +79,22 @@ export function ConsultaProduto({
               {productList.length > 0 ? (
                 productList.map((item, index) => {
                   const p = item.produto || item
+                  
+                  // CORREÇÃO APLICADA AQUI: 
+                  // Puxando as chaves em inglês que vêm do ProductDTO do backend
+                  const codigo = p.codigo || p.code || '-'
+                  const nome = p.nome || p.name || '-'
+                  const descricao = p.descricao || p.description || '-'
+                  const tipo = p.tipo || p.type || '-'
+                  const medida = p.medida || p.measure || '-'
+
                   return (
                     <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 text-gray-800 font-medium">{p.codigo || '-'}</td>
-                      <td className="p-4 text-gray-600">{p.nome || '-'}</td>
-                      <td className="p-4 text-gray-600 max-w-xs truncate" title={p.descricao}>{p.descricao || '-'}</td>
-                      <td className="p-4 text-gray-600">{p.tipo || '-'}</td>
-                      <td className="p-4 text-gray-600">{p.medida || '-'}</td>
+                      <td className="p-4 text-gray-800 font-medium">{codigo}</td>
+                      <td className="p-4 text-gray-600">{nome}</td>
+                      <td className="p-4 text-gray-600 max-w-xs truncate" title={descricao}>{descricao}</td>
+                      <td className="p-4 text-gray-600">{tipo}</td>
+                      <td className="p-4 text-gray-600">{medida}</td>
                     </tr>
                   )
                 })
