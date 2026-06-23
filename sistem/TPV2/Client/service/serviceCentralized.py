@@ -93,14 +93,17 @@ class ServiceCentralized:
         client_model = response_client.value
 
         if not isinstance(client_model, list):
-            response_adress = self.a_service.adressReturn(code_client=client_model.code)
-    
-            if not response_adress.sucess:
-                return response_adress.toDict()
+            adress_dict = None
+            mens_service = self.c_service.clientHasAdress(client_model.code)
+            if mens_service.value:
+                response_adress = self.a_service.adressReturn(code_client=client_model.code)
+                if not response_adress.sucess:
+                    return response_adress.toDict()
 
             try:
                 client_dict = self.convert_client.toDict(client=client_model)
-                adress_dict = self.convert_adress.toDict(adress=response_adress.value)
+                if mens_service.value:
+                    adress_dict = self.convert_adress.toDict(adress=response_adress.value)
             except Exception:
                 return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
             response_client.value = {'client': client_dict, 'adress': adress_dict}
@@ -108,11 +111,17 @@ class ServiceCentralized:
 
         list_dicts = []
         for client in client_model:
-            response_adress = self.a_service.adressReturn(code_client=client.code)
+            adress_dict = None
+            mens_service = self.c_service.clientHasAdress(client.code)
+            if mens_service.value:
+                response_adress = self.a_service.adressReturn(code_client=client.code)
+                if not response_adress.sucess:
+                    return response_adress.toDict()
 
             try:
                 client_dict = self.convert_client.toDict(client=client)
-                adress_dict = self.convert_adress.toDict(adress=response_adress.value)
+                if mens_service.value:
+                    adress_dict = self.convert_adress.toDict(adress=response_adress.value)
             except Exception:
                 return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
             list_dicts.append({'client': client_dict, 'adress': adress_dict})
@@ -133,16 +142,19 @@ class ServiceCentralized:
         list_return = []
 
         for client in clients:
-            response_adress = self.a_service.adressReturn(code_client=client.code)
-
-            if not response_adress.sucess:
-                return response_adress.toDict()
+            adress_dict = None
+            mens_service = self.c_service.clientHasAdress(client.code)
+            if mens_service.value:
+                response_adress = self.a_service.adressReturn(code_client=client.code)
+                if not response_adress.sucess:
+                    return response_adress.toDict()
 
             try:
                 client_dict = self.convert_client.toDict(client=client)
-                adress_dict = self.convert_adress.toDict(adress=response_adress.value)
-            except Exception:
-                return Response().erroMens(Errors.CONVERSION_ERROR, 500).toDict()
+                if mens_service.value:
+                    adress_dict = self.convert_adress.toDict(adress=response_adress.value)
+            except Exception as e:
+                return Response().erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict()
 
             list_return.append({'client': client_dict, 'adress': adress_dict})
 

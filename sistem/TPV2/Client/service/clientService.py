@@ -38,7 +38,7 @@ class ClientService:
         try:
             self.c_model.clientSave(client=client_model)
         except Exception as e:
-            return Response().erroMens(menssage=Errors.MODELS_ERROR, status=500)
+            return Response().erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
         return Response().sucessMens(mensage=Success.CLIENT_MODIFIED, value=client_model)
 
         
@@ -116,3 +116,11 @@ class ClientService:
         if not client_list:
             return Response().erroMens(menssage=Errors.NULL_LIST, status=404)
         return Response().sucessMens(mensage=Success.RETURN, value=client_list)
+    
+    def clientHasAdress(self, code_client: str):
+        validate_mens = self.validate.validateCode(code_client)
+        if validate_mens != MENSAGE_SUCESS:
+            return Response().erroMens(menssage=validate_mens, status=409)
+        model_response = self.c_model.clientHasAdress(code_client=code_client)
+        return Response().sucessMens(mensage=Success.RETURN, value=model_response)
+            
