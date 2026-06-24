@@ -8,5 +8,6 @@ urlpatterns = [
     path('save-adress/', controller.adressSave, name='save_adress'),
     path('search/', controller.clientReturn, name='search_client'),
     path('list/', controller.clientList, name='list_client'),
-    path('modify/', controller.clientModify, name='modify_client')
+    path('modify/', controller.clientModify, name='modify_client'),
+    path('delete/', controller.clientDelete, name='delete_client')
 ]
