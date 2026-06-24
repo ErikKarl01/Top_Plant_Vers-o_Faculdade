@@ -1,0 +1,51 @@
+@startuml "Diagrama de casos de uso - Gestão de cliente e produto"
+
+left to right direction
+
+actor "Usuário do sistema" as Usuario
+
+rectangle "TPV2" {
+    package "Gestão de Cliente" {
+        usecase "Cadastrar cliente" as UC_CadastrarCliente
+        usecase "Cadastrar endereço" as UC_CadastrarEndereco
+        usecase "Alterar cliente" as UC_AlterarCliente
+        usecase "Excluir cliente" as UC_ExcluirCliente
+        usecase "Consultar cliente" as UC_ConsultarCliente
+        usecase "Listar clientes" as UC_ListarClientes
+    }
+
+    package "Gestão de Produto" {
+        usecase "Cadastrar produto" as UC_CadastrarProduto
+        usecase "Alterar produto" as UC_AlterarProduto
+        usecase "Alterar preço" as UC_AlterarPreco
+        usecase "Alterar desconto" as UC_AlterarDesconto
+        usecase "Excluir produto" as UC_ExcluirProduto
+        usecase "Consultar produto" as UC_ConsultarProduto
+        usecase "Listar produtos" as UC_ListarProdutos
+    }
+}
+
+Usuario --> UC_CadastrarCliente
+Usuario --> UC_CadastrarEndereco
+Usuario --> UC_AlterarCliente
+Usuario --> UC_ExcluirCliente
+Usuario --> UC_ConsultarCliente
+Usuario --> UC_ListarClientes
+
+Usuario --> UC_CadastrarProduto
+Usuario --> UC_AlterarProduto
+Usuario --> UC_AlterarPreco
+Usuario --> UC_AlterarDesconto
+Usuario --> UC_ExcluirProduto
+Usuario --> UC_ConsultarProduto
+Usuario --> UC_ListarProdutos
+
+UC_CadastrarEndereco ..> UC_ConsultarCliente : <<include>>
+UC_AlterarCliente ..> UC_ConsultarCliente : <<include>>
+UC_ExcluirCliente ..> UC_ConsultarCliente : <<include>>
+UC_AlterarProduto ..> UC_ConsultarProduto : <<include>>
+UC_AlterarPreco ..> UC_ConsultarProduto : <<include>>
+UC_AlterarDesconto ..> UC_ConsultarProduto : <<include>>
+UC_ExcluirProduto ..> UC_ConsultarProduto : <<include>>
+
+@enduml

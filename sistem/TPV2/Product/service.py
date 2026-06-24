@@ -6,7 +6,6 @@ from constants.responseClass import Response
 from Product.models import Product
 from constants.productConstants import Errors, Success
 from Order.service.serviceCentralize import ServiceCentralized
-from Stock.service.serviceCentralize import ServiceCentralize as Serv_stock
 
 def cleanProduct(product: ProductDTO) -> ProductDTO:
     toClean = ToClean()
@@ -26,8 +25,7 @@ class Service:
     response = Response()
     p_model = Product()
     snapshot_create = ServiceCentralized()
-    stock_create = Serv_stock()
-    
+
     def productSave(self, product: ProductDTO):
         product_clean = cleanProduct(product)
         mensage_validate = self.validate_product.forRegister(product_clean)
@@ -42,20 +40,19 @@ class Service:
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         try:
+            product_return = self.p_model.productSave(product_model)
             product_saved = self.p_model.productSave(product_model)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
         try:
+            product_return = self.convert.toDict(product_return)
             product_return = self.convert.toDict(product_saved)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
-        if not self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price):
-            return self.response.erroMens(menssage='Erro ao criar snapshot', status=400)
-        mens_stock = self.stock_create.createItemStockResponse(code_product=product_saved.code, type_product=product_saved.type)
-        if not mens_stock.sucess:
-            return mens_stock.toDict()
+        self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price)
+
         return self.response.sucessMens(mensage=Success.PRODUCT_REGISTERED, value=product_return)
-    
+
 
     def productUpdate(self, product: ProductDTO, code_product: str):
         product_clean = cleanProduct(product)
@@ -85,7 +82,7 @@ class Service:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED, value=product_return)
 
-    
+
     def productList(self):
         productList = self.p_model.productList()
         if not productList:
@@ -111,8 +108,8 @@ class Service:
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage=Success.PRODUCT_DELETED)
-    
-    
+
+
     def productReturn(self, name: str='', code_product: str=''):
         if not name and not code_product:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
@@ -135,8 +132,8 @@ class Service:
         if not product:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
         return self.response.sucessMens(mensage=Success.RETURN, value=product)
-    
-    
+
+
     def productUpdatePrice(self, code_product: str='', name: str='', price: float=0.0):
         mensage_validate_price = self.validate_product.priceAndDiscount(price)
         mensage_validate_code = self.validate.validateCode(code_product)
@@ -160,7 +157,7 @@ class Service:
         if not product:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
         return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED_PRICE, value=product)
-    
+
     def productUpdateDiscount(self, code_product: str='', name: str='', discount: float=0.0):
         mensage_validate_discount = self.validate_product.priceAndDiscount(discount)
         mensage_validate_code = self.validate.validateCode(code_product)
@@ -183,4 +180,3 @@ class Service:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         if not product:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
-        return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED_DISCOUNT, value=product)

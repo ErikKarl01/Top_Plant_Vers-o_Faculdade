@@ -65,8 +65,7 @@ class Client(models.Model):
 
     def clientExists(self, code_client: str='', doc: str='') -> bool:
         if code_client and doc:
-            if Client.objects.filter(doc=doc).exists() or Client.objects.filter(code=code_client).exists():
-                return True
+            return Client.objects.filter(code=code_client ,doc=doc).exists()
         elif doc:
             return Client.objects.filter(doc=doc).exists()
         elif code_client:

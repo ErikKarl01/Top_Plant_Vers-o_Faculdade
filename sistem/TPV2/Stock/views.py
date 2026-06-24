@@ -2,7 +2,6 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Stock.service.serviceCentralize import ServiceCentralize
-
 class StockController:
     service = ServiceCentralize()
 
@@ -13,6 +12,20 @@ class StockController:
             return json.loads(request.body)
         except json.JSONDecodeError:
             return None
+
+    @csrf_exempt
+    def createItemStock(self, request):
+        if request.method == 'POST':
+            data = self._get_data(request)
+            if data is None:
+                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
+                
+            code_product = data.get('code_product', '')
+            type_product = data.get('type_product', '')
+            
+            res = self.service.createItemStockResponse(code_product=code_product, type_product=type_product)
+            return JsonResponse(res, status=res.get('status', 200))
+        return JsonResponse({'message': 'Método não permitido'}, status=405)
 
     @csrf_exempt
     def returnStockWithItems(self, request):

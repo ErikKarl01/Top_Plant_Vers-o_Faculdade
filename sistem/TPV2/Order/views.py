@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Order.service.serviceCentralize import ServiceCentralized
 
+# Create your views here.
 class OrderController:
     service = ServiceCentralized()
     @csrf_exempt
