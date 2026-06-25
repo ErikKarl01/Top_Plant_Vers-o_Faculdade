@@ -4,11 +4,11 @@ from constants.stockConstants import Errors, Success
 from constants.responseClass import Response
 
 class StockService:
-    validateStock = Validate().Stock()
+    validate = Validate()
     s_model = Stock()
 
     def stockCreate(self, category: str) -> Response:
-        mens_category = self.validateStock.stock_type(val=category)
+        mens_category = self.validate.Stock.stock_type(val=category)
         if mens_category != MENSAGE_SUCESS:
             return Response().erroMens(menssage=mens_category, status=400)
             
@@ -24,8 +24,8 @@ class StockService:
 
 
     def stockModify(self, stove_name: str, stock_code: str) -> Response:
-        mens_name = self.validateStock.stoveName(val=stove_name)
-        mens_code = self.validateStock.code(val=stock_code)
+        mens_name = self.validate.Stock.stoveName(val=stove_name)
+        mens_code = self.validate.Stock.code(val=stock_code)
         mensages_erro = []
         
         if mens_name != MENSAGE_SUCESS:
@@ -47,7 +47,7 @@ class StockService:
 
 
     def stockDelete(self, stock_code: str) -> Response:
-        mens_code = self.validateStock.code(val=stock_code)
+        mens_code = self.validate.Stock.code(val=stock_code)
         if mens_code != MENSAGE_SUCESS:
             return Response().erroMens(menssage=mens_code, status=400)
             
@@ -63,7 +63,7 @@ class StockService:
 
 
     def stockReturnByCode(self, stock_code: str) -> Response:
-        mens_code = self.validateStock.code(val=stock_code)
+        mens_code = self.validate.Stock.code(val=stock_code)
         if mens_code != MENSAGE_SUCESS:
             return Response().erroMens(menssage=mens_code, status=400)
             
@@ -75,7 +75,7 @@ class StockService:
 
 
     def stockReturnByCategory(self, category: str) -> Response:
-        mens_category = self.validateStock.stock_type(val=category)
+        mens_category = self.validate.Stock.stock_type(val=category)
         if mens_category != MENSAGE_SUCESS:
             return Response().erroMens(menssage=mens_category, status=400)
             

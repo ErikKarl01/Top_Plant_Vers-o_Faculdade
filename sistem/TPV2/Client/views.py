@@ -20,20 +20,12 @@ class Controller:
         return JsonResponse(self.service.saveAdressResponse(adressDTO=adressDTO, code_client=code_client))
     
     @csrf_exempt
-    def modifyClient(self, request):
+    def clientModify(self, request):
         data = json.loads(request.body)
         clientDTO = ClientDTO(**data.get('client', {}))
-        code_client = data.get('code_client', '')
-        res = self.service.modifyClientResponse(clientDTO=clientDTO, code_client=code_client)
-        return JsonResponse(res, status=res.get('status', 200))
-    
-    @csrf_exempt
-    def modifyAdress(self, request):
-        data = json.loads(request.body)
         adressDTO = AdressDTO(**data.get('adress', {}))
         code_client = data.get('code_client', '')
-        res = self.service.modifyAdressResponse(adressDTO=adressDTO, code_client=code_client)
-        return JsonResponse(res, status=res.get('status', 200))
+        return JsonResponse(self.service.modifyResponse(clientDTO=clientDTO, adressDTO=adressDTO, code_client=code_client))
     
     @csrf_exempt
     def clientDelete(self, request): 

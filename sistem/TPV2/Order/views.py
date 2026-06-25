@@ -5,6 +5,7 @@ from Order.service.serviceCentralize import ServiceCentralized
 from Order.models import Snapshot
 from utils.converet.convertOrder import ConvertSnapshot
 
+# Create your views here.
 class OrderController:
     service = ServiceCentralized()
     @csrf_exempt
@@ -28,8 +29,9 @@ class OrderController:
     def createOrder(self, request):
         data = json.loads(request.body)
         code_client = data.get('code_client', '')
+        items = data.get('items', [])
         codes_product = data.get('codes_product', [])
-        res = self.service.createOrder(code_client=code_client, codes_product=codes_product)
+        res = self.service.createOrder(code_client=code_client, items=items, codes_product=codes_product)
         return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt

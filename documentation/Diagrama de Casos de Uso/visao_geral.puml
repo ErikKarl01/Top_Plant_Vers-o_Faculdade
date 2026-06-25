@@ -1,0 +1,30 @@
+@startuml "Diagrama de casos de uso - Visão Geral"
+
+left to right direction
+
+actor "Usuário do sistema" as Usuario
+
+rectangle "TPV2" {
+    package "Gestão de Clientes" {
+        usecase "Gerenciar Clientes" as UC_GestaoClientes
+    }
+    
+    package "Gestão de Produtos" {
+        usecase "Gerenciar Produtos" as UC_GestaoProdutos
+    }
+    
+    package "Gestão de Pedidos" {
+        usecase "Gerenciar Pedidos" as UC_GestaoPedidos
+    }
+    
+    package "Gestão de Estoque" {
+        usecase "Gerenciar Estoque" as UC_GestaoEstoque
+    }
+}
+
+Usuario --> UC_GestaoClientes
+Usuario --> UC_GestaoProdutos
+Usuario --> UC_GestaoPedidos
+Usuario --> UC_GestaoEstoque
+
+@enduml

@@ -221,6 +221,32 @@ function App() {
     setBusy(null)
   }
 
+  async function handleClientDelete(doc: string) {
+    setBusy('client-delete')
+
+    const lookup = await requestJson('/client/search/', 'POST', { doc })
+    if (!lookup.sucess || !lookup.value) {
+      setResponse(lookup)
+      setBusy(null)
+      return lookup
+    }
+
+    const clientValue = lookup.value as { client?: { code?: string } }
+    const codeClient = clientValue.client?.code
+
+    if (!codeClient) {
+      setResponse({ sucess: false, mensage: 'Nao foi possivel obter o codigo do cliente.' })
+      setBusy(null)
+      return
+    }
+
+    const result = await requestJson('/client/delete/', 'POST', { code_client: codeClient })
+    setResponse(result)
+    setBusy(null)
+    await loadLists()
+    return result
+  }
+
   async function handleProductSave(payloadRecebido: any) {
     setBusy('product-save')
 
@@ -307,6 +333,8 @@ return (
         )}
         {section === 'cliente-excluir' && (
           <ExclusaoCliente 
+            handleDeleteClient={handleClientDelete}
+            busy={busy}
             response={response} // <-- Adicionado
           />
         )}

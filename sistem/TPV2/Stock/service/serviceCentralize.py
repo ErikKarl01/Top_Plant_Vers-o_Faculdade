@@ -26,7 +26,7 @@ class ServiceCentralize:
     response = Response()
     errors = Errors()
 
-    def createItemStockResponse(self, code_product: str, type_product: str) -> Response:
+    def createItemStockResponse(self, code_product: str, type_product: str):
         response_stock = self.stock_service.stockReturnByCategory(category=type_product)
         if not response_stock.sucess and response_stock.status == 404:
             response_stock = self.stock_service.stockCreate(category=type_product)
@@ -51,7 +51,7 @@ class ServiceCentralize:
             return self.response.erroMens(menssage=self.errors.CONVERSION_ERROR, status=500).toDict()
             
         response_item.value = item_dict
-        return response_item
+        return response_item.toDict()
 
 
     def returnStockWithItemsResponse(self, stock_code: str):

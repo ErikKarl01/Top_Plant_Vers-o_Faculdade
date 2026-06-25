@@ -8,12 +8,11 @@ class SnapshotService:
     s_model = Snapshot()
     p_model = Product()
     validate = Validate()
-    validateOrder = Validate().Oder()
     response = Response()
     
     def saveSnapshot(self, code_product: str, price: float):
         mens_code = self.validate.validateCode(code_product)
-        mens_price = self.validateOrder.validateFloat(price) 
+        mens_price = self.validate.Oder().validateFloat(price) 
         mensages_erro = []
         
         if mens_code != MENSAGE_SUCESS: mensages_erro.append(mens_code)
@@ -31,8 +30,8 @@ class SnapshotService:
 
     def updateSnapshot(self, code_snapshot: str, price: float, discount: float):
         mens_code = self.validate.validateCode(code_snapshot)
-        mens_price = self.validateOrder.validateFloat(price)
-        mens_discount = self.validateOrder.validateFloat(discount)
+        mens_price = self.validate.validateFloat(price)
+        mens_discount = self.validate.validateFloat(discount)
         
         mensages_erro = []
         if mens_code != MENSAGE_SUCESS: mensages_erro.append(mens_code)

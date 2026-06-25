@@ -21,6 +21,8 @@ export function CadastroCliente({
   addressForm, setAddressForm,
   handleClientSave, handleAddressSave, busy, response, clientList
 }: CadastroClienteProps) {
+  const isCnpj = clientForm.doc_type === 'CNPJ'
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
       
@@ -64,7 +66,11 @@ export function CadastroCliente({
               <div className="flex gap-2">
                 <select 
                   value={clientForm.doc_type}
-                    onChange={(e) => setClientForm({ ...clientForm, doc_type: e.target.value })}
+                    onChange={(e) => setClientForm({
+                      ...clientForm,
+                      doc_type: e.target.value,
+                      state_register: e.target.value === 'CPF' ? '' : clientForm.state_register,
+                    })}
                     required
                   className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-gray-700"
                 >
@@ -102,13 +108,15 @@ export function CadastroCliente({
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-2">Inscrição Estadual</label>
+              <label className="text-sm font-medium text-gray-700 mb-2">Inscrição Estadual {isCnpj ? '(obrigatória para CNPJ)' : '(não usada para CPF)'}</label>
               <input 
                 type="text" 
                 value={clientForm.state_register} 
                 onChange={(e) => setClientForm({ ...clientForm, state_register: e.target.value })}
-                required
+                required={isCnpj}
+                disabled={!isCnpj}
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
+                placeholder={isCnpj ? 'Digite a inscrição estadual' : 'CPF nao usa este campo'}
               />
             </div>
           </div>

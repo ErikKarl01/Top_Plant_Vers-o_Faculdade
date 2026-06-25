@@ -4,6 +4,7 @@ from .views import StockController
 controller = StockController()
 
 urlpatterns = [
+    path('stock/item/create/', controller.createItemStock, name='create_item_stock'),
     path('stock/return/', controller.returnStockWithItems, name='return_stock'),
     path('stock/modify/', controller.modifyStock, name='modify_stock'),
     path('stock/item/update-amount/', controller.updateAmountAndLog, name='update_amount_and_log'),
