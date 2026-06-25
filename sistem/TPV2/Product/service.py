@@ -58,28 +58,41 @@ class Service:
         product_clean = cleanProduct(product)
         mensage_validate = self.validate_product.forRegister(product_clean)
         mensage_validate_code = self.validate.validateCode(code_product)
+        
         if mensage_validate_code != MENSAGE_SUCESS:
             return self.response.erroMens(menssage=mensage_validate_code, status=400)
-        if not self.p_model.productExists(code_product):
+            
+        old_product = self.p_model.productReturn(code_product=code_product)
+        if not old_product:
             return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+            
         if mensage_validate != MENSAGE_SUCESS:
             return self.response.erroMens(menssage=mensage_validate, status=400)
-        if self.p_model.productExists(product_clean.code):
+            
+        if product_clean.code != old_product.code and self.p_model.productExists(product_clean.code):
             return self.response.erroMens(menssage=Errors.PRODUCT_ALREADY_EXISTS, status=400)
-        if self.p_model.nametAlreadyRegistered(product_clean.name):
+            
+        if product_clean.name != old_product.name and self.p_model.nametAlreadyRegistered(product_clean.name):
             return self.response.erroMens(menssage=Errors.NAME_ALREADY_EXISTS, status=400)
+
         try:
             product_model = self.convert.toModel(product_clean)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+            
         try:
             product_return = self.p_model.productUpdate(product_model, code_product)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
+            
+        if product_return is None:
+            return self.response.erroMens(menssage=Errors.PRODUCT_NOT_FOUND, status=404)
+            
         try:
             product_return = self.convert.toDict(product_return)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+            
         return self.response.sucessMens(mensage=Success.PRODUCT_MODIFIED, value=product_return)
 
 
@@ -107,7 +120,7 @@ class Service:
             self.p_model.productDelete(code_product)
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
-        return self.response.sucessMens(mensage=Success.PRODUCT_DELETED)
+        return self.response.sucessMens(mensage=Success.PRODUCT_DELETED, value=None)
 
 
     def productReturn(self, name: str='', code_product: str=''):

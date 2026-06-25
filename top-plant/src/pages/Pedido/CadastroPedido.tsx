@@ -26,7 +26,7 @@ type ProductView = {
 }
 
 function normalizeClient(item: ClientLookupItem | Record<string, unknown>): ClientView {
-  const clientData = (item as ClientLookupItem).client || (item as ClientLookupItem).cliente || item
+  const clientData = (item as ClientLookupItem).client || (item as ClientLookupItem).client || item
   const client = clientData as Record<string, unknown>
 
   return {
@@ -110,6 +110,7 @@ export function CadastroPedido({ clientList, productList, handleSalvarPedido, bu
     const payload: OrderSavePayload = {
       code_client: selectedClientCode,
       codes_product: selectedProductCodes,
+      items: [],
     }
 
     const result = await handleSalvarPedido(payload)
