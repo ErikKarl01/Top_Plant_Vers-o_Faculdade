@@ -1,4 +1,4 @@
-# Top_Plant_Vers-o_Faculdade
+# Top_Plant_Versão_Faculdade
 
 ## Para rodar o BackEnd:
     cd sistem/

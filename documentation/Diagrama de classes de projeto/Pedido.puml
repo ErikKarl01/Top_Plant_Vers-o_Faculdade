@@ -1,6 +1,6 @@
 @startuml "Diagrama de Classes - Pedido"
 
-left to right direction
+top to bottom direction
 
 class Order {
     -id: int
