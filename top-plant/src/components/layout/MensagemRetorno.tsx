@@ -1,4 +1,3 @@
-import type { ApiResponse } from '../../App'
 type MensagemRetornoProps = {
   response: {
     sucess?: boolean;

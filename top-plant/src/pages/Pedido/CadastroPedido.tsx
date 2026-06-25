@@ -26,7 +26,7 @@ type ProductView = {
 }
 
 function normalizeClient(item: ClientLookupItem | Record<string, unknown>): ClientView {
-  const clientData = (item as ClientLookupItem).client || (item as ClientLookupItem).cliente || item
+  const clientData = (item as ClientLookupItem & { cliente?: Record<string, unknown> }).client || (item as ClientLookupItem & { cliente?: Record<string, unknown> }).cliente || item
   const client = clientData as Record<string, unknown>
 
   return {
