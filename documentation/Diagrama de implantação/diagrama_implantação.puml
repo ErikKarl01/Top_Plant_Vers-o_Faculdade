@@ -1,0 +1,37 @@
+@startuml implantação
+skinparam componentStyle rectangle
+
+title Diagrama de Implantação - Top Plant
+
+node "Cliente / Usuário" as client_node {
+    component "Navegador Web (Chrome, Firefox, Edge)" as browser
+}
+
+node "Servidor de Aplicação" as app_server {
+    node "Frontend (React + Vite)" as frontend_node {
+        artifact "Build Assets (JS, CSS, HTML)" as frontend_assets
+    }
+    
+    node "Backend (Django)" as backend_node {
+        component "Django Web Framework" as django_app
+        component "REST API" as api_layer
+    }
+}
+
+node "Servidor de Banco de Dados" as db_server {
+    database "SQLite" as sqlite_db {
+        artifact "db.sqlite3" as db_file
+    }
+}
+
+' Conexões
+browser ..> frontend_assets : "Acessa via HTTP/HTTPS"
+frontend_assets ..> api_layer : "Requisições REST (JSON)"
+api_layer ..> django_app : "Processa Lógica de Negócio"
+django_app ..> db_file : "Persistência de Dados (SQL)"
+
+note right of client_node : O usuário interage com a interface\nReact via navegador.
+note right of app_server : O servidor hospeda tanto o frontend\ncompilado quanto a API Django.
+note right of db_server : Banco de dados local SQLite para\narmazenamento de produtos, clientes e pedidos.
+
+@enduml

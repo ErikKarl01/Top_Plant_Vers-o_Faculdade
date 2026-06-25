@@ -1,0 +1,50 @@
+@startuml componente
+skinparam componentStyle rectangle
+
+title Diagrama de Componentes - Top Plant
+
+package "Frontend (React)" {
+    [Interface do Usuário] as UI
+    [Gerenciador de Estado/Hooks] as StateMgmt
+    [Serviços de API (Axios/Fetch)] as ApiClient
+}
+
+package "Backend (Django)" {
+    component "API Gateway / URLs" as Urls
+    
+    package "Módulos de Negócio" {
+        [Componente de Cliente] as ClientComp
+        [Componente de Produto] as ProductComp
+        [Componente de Estoque] as StockComp
+        [Componente de Pedido] as OrderComp
+    }
+    
+    [Camada de Persistência (ORM)] as ORM
+}
+
+database "SQLite Database" as DB {
+    [Tabelas de Dados] as Tables
+}
+
+' Relacionamentos Frontend
+UI --> StateMgmt
+StateMgmt --> ApiClient
+ApiClient ..> Urls : "Requisições HTTP"
+
+' Relacionamentos Backend
+Urls --> ClientComp
+Urls --> ProductComp
+Urls --> StockComp
+Urls --> OrderComp
+
+ClientComp --> ORM
+ProductComp --> ORM
+StockComp --> ORM
+OrderComp --> ORM
+
+ORM --> Tables : "Consultas SQL"
+
+note top of UI : Interface responsiva construída\ncom React e Tailwind CSS.
+note bottom of ORM : Django ORM abstrai o acesso\nao banco de dados SQLite.
+
+@enduml
