@@ -33,16 +33,33 @@ class ServiceCentralized:
             return response_update.toDict()
         return response_update.toDict()
 
-    def createOrder(self, code_client: str, codes_product: list):
+    def createOrder(self, code_client: str, items: list | None = None, codes_product: list | None = None):
         code_client_clean = cleanCode(code=code_client)
-        clean_product_codes = [cleanCode(code) for code in codes_product]
+        normalized_items = []
+
+        if items:
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                code_product = cleanCode(code=item.get('code_product') or item.get('product_code') or item.get('code') or '')
+                amount = item.get('amount', 1)
+                try:
+                    amount = int(amount)
+                except (TypeError, ValueError):
+                    amount = 1
+                if code_product:
+                    normalized_items.append({'code_product': code_product, 'amount': max(1, amount)})
+
+        if not normalized_items and codes_product:
+            normalized_items = [{'code_product': cleanCode(code=code_product), 'amount': 1} for code_product in codes_product if cleanCode(code=code_product)]
+
         response_create_order = self.o_service.createOrder(code_client=code_client_clean)
         if not response_create_order.sucess:
             return response_create_order.toDict()
         code_order = response_create_order.value.code
         items_dict = []
-        for code_prod in clean_product_codes:
-            response_create_item = self.i_service.saveItem(code_order=code_order, code_product=code_prod, amount=1)
+        for item in normalized_items:
+            response_create_item = self.i_service.saveItem(code_order=code_order, code_product=item['code_product'], amount=item['amount'])
             if not response_create_item.sucess:
                 return response_create_item.toDict()
             try:

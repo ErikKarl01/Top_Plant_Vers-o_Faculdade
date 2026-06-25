@@ -107,7 +107,6 @@ export function CadastroCliente({
                 type="text" 
                 value={clientForm.state_register} 
                 onChange={(e) => setClientForm({ ...clientForm, state_register: e.target.value })}
-                required
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-gray-700"
               />
             </div>
