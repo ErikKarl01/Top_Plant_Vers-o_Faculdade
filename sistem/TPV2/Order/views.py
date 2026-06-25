@@ -2,6 +2,8 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Order.service.serviceCentralize import ServiceCentralized
+from Order.models import Snapshot
+from utils.converet.convertOrder import ConvertSnapshot
 
 class OrderController:
     service = ServiceCentralized()
@@ -13,6 +15,14 @@ class OrderController:
         discount = float(data.get('discount', 0.0))
         res = self.service.updateSnapshot(code_snapshot=code_snapshot, price_product=price_product, discount=discount)
         return JsonResponse(res, status=res.get('status', 200))
+    
+    @csrf_exempt
+    def listSnapshots(self, request):
+        list_snapshots = list(Snapshot.objects.all())
+        dict_list = []
+        for snap in list_snapshots:
+            dict_list.append(ConvertSnapshot().toDict(snap))
+        return JsonResponse(dict_list, status=200, safe=False)
 
     @csrf_exempt
     def createOrder(self, request):

@@ -152,7 +152,7 @@ class OrderItem(models.Model):
         product = Product.objects.filter(code=code_product).first()
         item = OrderItem.objects.filter(order=order, product=product).first()
         if item:
-            item.amount = amount
+            item.amount += amount
             item.save()
             return item
         return None

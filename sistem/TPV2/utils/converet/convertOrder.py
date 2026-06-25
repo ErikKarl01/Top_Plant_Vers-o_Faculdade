@@ -1,4 +1,4 @@
-from Order.models import Order, OrderItem
+from Order.models import Order, OrderItem, Snapshot
 
 class ConvertOrder:
     def toDict(self, order: Order):
@@ -19,3 +19,13 @@ class ConvertOrderItem:
             'price': item.price,
             'discount': item.discount
         }
+        
+class ConvertSnapshot:
+    def toDict(self, snapsot: Snapshot):
+        return {
+            'code': snapsot.code,
+            'product_code': snapsot.product.code,
+            'product_code_name': snapsot.product.name,
+            'price': snapsot.price,
+            'discount': snapsot.discount
+        }  

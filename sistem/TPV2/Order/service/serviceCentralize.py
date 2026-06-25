@@ -1,6 +1,6 @@
 from utils.toClean import ToClean
 from constants.responseClass import Response
-from utils.converet.convertOrder import ConvertOrderItem, ConvertOrder
+from utils.converet.convertOrder import ConvertOrderItem, ConvertOrder, ConvertSnapshot
 from Order.service.orderItemService import OrderItemService
 from Order.service.orderService import OrderService
 from Order.service.snapshotService import SnapshotService
@@ -18,6 +18,7 @@ class ServiceCentralized:
     snap_service = SnapshotService()
     c_item = ConvertOrderItem()
     c_order = ConvertOrder()
+    c_snapshot = ConvertSnapshot()
     
     def saveSnapshot(self, code_product: str, price_product: float):
         code_prod_clean = cleanCode(code=code_product)
@@ -29,6 +30,12 @@ class ServiceCentralized:
     def updateSnapshot(self, code_snapshot: str, price_product: float, discount: float):
         code_snap_clean = cleanCode(code=code_snapshot)
         response_update = self.snap_service.updateSnapshot(code_snapshot=code_snap_clean, price=price_product, discount=discount)
+        if not response_update.sucess:
+            return response_update.toDict()
+        try:
+            response_update.value = self.c_snapshot.toDict(response_update.value)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict() 
         if not response_update.sucess:
             return response_update.toDict()
         return response_update.toDict()
@@ -64,7 +71,7 @@ class ServiceCentralized:
         response_items = self.i_service.returnItem(code_order=code_order_clean)
         if not response_items.sucess:
             return response_items
-        current_items = response_items.value
+        current_items = list(response_items.value)
         all_zero = True
         updated_items_dict = []
         for item in current_items:

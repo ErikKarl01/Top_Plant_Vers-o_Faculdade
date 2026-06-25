@@ -39,7 +39,7 @@ class SnapshotService:
         if mens_price != MENSAGE_SUCESS: mensages_erro.append(mens_price)
         if mens_discount != MENSAGE_SUCESS: mensages_erro.append(mens_discount)
         if mensages_erro: return self.response.erroMens(menssage=mensages_erro, status=400)
-            
+         
         if price <= discount:
             return self.response.erroMens(menssage=Errors.DICOUNT_BIGGER_PRICE, status=400)
             

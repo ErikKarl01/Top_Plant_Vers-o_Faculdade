@@ -37,7 +37,7 @@ PRODUCT_TYPES = [t[0] for t in PRODUCT_TYPE_CHOICES]
 
 STATUS_ORDER_ = [t[0] for t in STATUS_ORDER_CHOICES]
     
-CODE_MENSAGE_ERRO_VALIDATION = 'Campo código deve conter apenas letras e números'
+CODE_MENSAGE_ERRO_VALIDATION = 'Campo código deve conter apenas letras e números, no mínimo 4 e no máximo 10 caractres'
 DATE_MENSAGE_ERRO_VALIDATION = 'Intervalo de tempo inserido incorreto'
 
 CLIENT_MENSAGE_ERRO_VALIDATION = {
@@ -99,7 +99,7 @@ class Validate:
         val_str = str(val) or ""
         if tamanhoExobitante(val_str) or len(val_str) > 10 or len(val_str) < 4 or not val_str:
             return CODE_MENSAGE_ERRO_VALIDATION
-        if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
+        if not re.match(r"^[A-Z0-9]+$", val_str):
             return CODE_MENSAGE_ERRO_VALIDATION
         return MENSAGE_SUCESS
     

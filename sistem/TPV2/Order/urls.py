@@ -10,4 +10,5 @@ urlpatterns = [
     path('order/get/', controller.getOrderByCode, name='get_order_by_code'),
     path('order/return/', controller.returnOrder, name='return_order'),
     path('order/delete/', controller.deleteOrder, name='delete_order'),
+    path('snapshot/list/', controller.listSnapshots, name='return_snapshots')
 ]
