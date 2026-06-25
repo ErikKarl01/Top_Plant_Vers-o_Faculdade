@@ -27,13 +27,7 @@ export type OrderSearchFilters = {
   end?: string
 }
 
-export type OrderSaveItem = {
-  code_product: string
-  amount: number
-}
-
 export type OrderSavePayload = {
   code_client: string
-  items: OrderSaveItem[]
-  codes_product?: string[]
+  codes_product: string[]
 }
