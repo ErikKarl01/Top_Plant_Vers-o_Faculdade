@@ -12,7 +12,7 @@ class SnapshotService:
     
     def saveSnapshot(self, code_product: str, price: float):
         mens_code = self.validate.validateCode(code_product)
-        mens_price = self.validate.Oder.validateFloat(price) 
+        mens_price = self.validate.Oder().validateFloat(price) 
         mensages_erro = []
         
         if mens_code != MENSAGE_SUCESS: mensages_erro.append(mens_code)

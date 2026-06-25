@@ -1,0 +1,25 @@
+@startuml "Diagrama de casos de uso - Pedidos"
+
+left to right direction
+
+actor "Usuário do sistema" as Usuario
+
+rectangle "TPV2" {
+	package "Gestão de Pedidos" {
+		usecase "Cadastrar pedido" as UC_CadastrarPedido
+		usecase "Atualizar pedido" as UC_AtualizarPedido
+		usecase "Consultar pedido por código" as UC_ConsultarPedido
+		usecase "Listar pedidos filtrados" as UC_ListarPedidos
+		usecase "Excluir pedido" as UC_ExcluirPedido
+		usecase "Atualizar snapshot do produto" as UC_AtualizarSnapshot
+	}
+}
+
+Usuario --> UC_CadastrarPedido
+Usuario --> UC_AtualizarPedido
+Usuario --> UC_ConsultarPedido
+Usuario --> UC_ListarPedidos
+Usuario --> UC_ExcluirPedido
+Usuario --> UC_AtualizarSnapshot
+
+@enduml
