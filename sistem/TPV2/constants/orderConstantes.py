@@ -11,6 +11,7 @@ class Errors:
     ITEM_ORDER_NOT_FOUND = "Item de pedido não encontrado."
     DICOUNT_BIGGER_PRICE = "Não é permitido um valor de disconto maior ou igual ao preço do produto"
     CONVERSION_ERROR = "Erro de conversão de pedido ou item"
+    AMOUNT_ERROR = "Quantidade inserida é invalida"
 
 class Success:
     ORDER_DELETE_SUCEFULD = "Pedido excluído com sucesso"

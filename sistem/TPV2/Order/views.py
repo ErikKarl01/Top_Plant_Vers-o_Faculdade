@@ -24,14 +24,20 @@ class OrderController:
         for snap in list_snapshots:
             dict_list.append(ConvertSnapshot().toDict(snap))
         return JsonResponse(dict_list, status=200, safe=False)
+    
+    @csrf_exempt
+    def createOrder(self, request):
+        data = json.loads(request.body)
+        price_target = data.get('price_target', 0)
+        
+    pass
 
     @csrf_exempt
     def createOrder(self, request):
         data = json.loads(request.body)
         code_client = data.get('code_client', '')
         items = data.get('items', [])
-        codes_product = data.get('codes_product', [])
-        res = self.service.createOrder(code_client=code_client, items=items, codes_product=codes_product)
+        res = self.service.createOrder(code_client=code_client, items=items)
         return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt

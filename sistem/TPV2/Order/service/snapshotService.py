@@ -50,3 +50,6 @@ class SnapshotService:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
             
         return self.response.sucessMens(mensage="Snapshot atualizado com sucesso.", value=snapshot_model)
+    
+    def listSnapshots(self):
+        return self.s_model.listSnapshots()

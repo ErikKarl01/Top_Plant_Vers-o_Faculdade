@@ -51,6 +51,9 @@ class Snapshot(models.Model):
             return snapshot
         return None
     
+    def listSnapshots(self):
+        return list(snapshots = Snapshot.objects.all())
+    
 
 class Order(models.Model):
     code = models.CharField(
@@ -143,9 +146,14 @@ class OrderItem(models.Model):
         item.save()
         return item
     
-    def returnItem(self, code_order: str):
+    def returnItemsByOrderCode(self, code_order: str):
         order = Order.objects.filter(code=code_order).first()
         return list(OrderItem.objects.filter(order=order))
+    
+    def returnItem(self, code_order: str, code_product: str):
+        order = Order.objects.filter(code=code_order).first()
+        product = Product.objects.filter(code=code_product).first()
+        return OrderItem.objects.filter(order=order, product=product).first()
             
     def updateItem(self, code_order: str, code_product: str, amount: int):
         order = Order.objects.filter(code=code_order).first()
