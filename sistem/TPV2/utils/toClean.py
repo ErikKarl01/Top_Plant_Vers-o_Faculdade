@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 '''
 | Símbolo | Significado                                 |
@@ -49,3 +50,13 @@ class ToClean:
         val_str = str(val or '').strip()
         val_str = re.sub(r'\s+', ' ', val_str)
         return val_str
+    
+    def date(self, val: str):
+        val_str = str(val or '').strip()
+        if not val_str:
+            return ''
+        day = val_str[0:2]
+        mounth = val_str[3:5]
+        year = val_str[6:]
+        date_ = f"{year}/{mounth}/{day}" 
+        return datetime.strptime(date_, "%Y/%m/%d").date()

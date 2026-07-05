@@ -61,7 +61,7 @@ class ServiceCentralized:
                 return_snaps.append(self.c_snapshot.toDict(snap['snap']))
             except Exception as e:
                 return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
-        return self.response.sucessMens(mensage='', value=return_snaps)
+        return self.response.sucessMens(mensage='', value=return_snaps).toDict()
           
 
     def createOrder(self, code_client: str, items: list):
@@ -86,13 +86,13 @@ class ServiceCentralized:
                 order_dict = self.c_order.toDict(order)
                 list_items_order.append(item_dict)
             except Exception as e:
-                return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+                return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict()
         
         dict_return = {}
         dict_return['order'] = order_dict
         dict_return['items'] = list_items_order
         
-        return self.response.sucessMens(mensage=Success.ORDER_CREATED_SUCEFULD, value=dict_return)
+        return self.response.sucessMens(mensage=Success.ORDER_CREATED_SUCEFULD, value=dict_return).toDict()
     
     def updateOrder(self, code_order: str, items: list):
         code_clean = cleanCode(code=code_order)
@@ -149,7 +149,7 @@ class ServiceCentralized:
         list_return = []
         try:
             for order in resp_orders.value:
-                resp_items = self.i_service.returnItem(code_order=order.code)
+                resp_items = self.i_service.returnItems(code_order=order.code)
                 if not resp_items.sucess:
                     return resp_items.toDict()
                 order_dict = self.c_order.toDict(order)

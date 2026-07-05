@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ, CPF
 from typing import Any
 from datetime import date
+from datetime import datetime
 import phonenumbers
 import re
 
@@ -102,13 +103,17 @@ class Validate:
         if not re.match(r"^[A-Z0-9]+$", val_str):
             return CODE_MENSAGE_ERRO_VALIDATION
         return MENSAGE_SUCESS
-    
+
     def validateDate(self, time_interval):
         if isinstance(time_interval, dict):
-            if (not isinstance(time_interval['start'], date) or not isinstance(time_interval['end'], date) or
-                time_interval['start']>time_interval['end']):
+            try:
+                start_date = datetime.strptime(time_interval['start'], "%d/%m/%Y").date()
+                end_date = datetime.strptime(time_interval['end'], "%d/%m/%Y").date()
+                if start_date > end_date:
+                    return DATE_MENSAGE_ERRO_VALIDATION   
+                return MENSAGE_SUCESS
+            except (ValueError, KeyError, TypeError):
                 return DATE_MENSAGE_ERRO_VALIDATION
-            return MENSAGE_SUCESS
         return DATE_MENSAGE_ERRO_VALIDATION
     
     class Client:
@@ -296,8 +301,10 @@ class Validate:
             return MENSAGE_SUCESS
         
         def description(self, val: str):
-            val_str = str(val)
-            if tamanhoExobitante(val=val_str) or not val or len(val) < 8:
+            val_str = str(val) or ''
+            if not val_str:
+                return MENSAGE_SUCESS
+            if tamanhoExobitante(val=val_str)  or len(val_str) < 4:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['description']
             if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['description']

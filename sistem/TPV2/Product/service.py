@@ -60,7 +60,7 @@ class Service:
         mensage_validate_code = self.validate.validateCode(code_product)
         
         if mensage_validate_code != MENSAGE_SUCESS:
-            return self.response.erroMens(menssage=mensage_validate_code, status=400)
+            return self.response.erroMens(menssage=[mensage_validate_code, code_product], status=400)
             
         old_product = self.p_model.productReturn(code_product=code_product)
         if not old_product:

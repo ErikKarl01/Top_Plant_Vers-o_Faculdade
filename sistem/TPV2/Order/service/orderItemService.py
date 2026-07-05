@@ -62,7 +62,7 @@ class OrderItemService:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage=Success.ITEM_ORDER_MODIFIED_SUCEFULD, value=item_model)
 
-    def returnItem(self, code_order: str):
+    def returnItems(self, code_order: str):
         mens_code = self.validateOrder.code(code_order)
         if mens_code != MENSAGE_SUCESS:
             return self.response.erroMens(menssage=mens_code, status=400)

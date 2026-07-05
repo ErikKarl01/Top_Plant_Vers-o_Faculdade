@@ -26,7 +26,7 @@ class OrderController:
         return JsonResponse(dict_list, status=200, safe=False)
     
     @csrf_exempt
-    def createOrder(self, request):
+    def returSnapshotsOrdenated(self, request):
         data = json.loads(request.body)
         price_target = data.get('price_target', 0)
         
@@ -45,7 +45,7 @@ class OrderController:
         data = json.loads(request.body)
         code_order = data.get('code_order', '')
         items_to_discount = data.get('items_to_discount', [])
-        res = self.service.updateOrder(code_order=code_order, items_to_discount=items_to_discount)
+        res = self.service.updateOrder(code_order=code_order, items=items_to_discount)
         return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt

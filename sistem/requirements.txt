@@ -1,3 +1,55 @@
-validate_docbr
-phonenumbers
-django
+{
+    "client":
+    {
+        "code": "CLI02",
+        "name": "Zezin mototaxi",
+        "doc_type": "Cpf",
+        "doc": "62826246224",
+        "email": "cipay97881@lovadio.com",
+        "contact": "8421130754",
+        "state_register": ""
+
+    }
+}
+
+
+# Para modificar um snapshot
+{
+    "code_snapshot": "SNXX2Z03JS",
+    "price_product": 15.25,
+    "discount": 3.0
+}
+
+
+# Para pedido
+{
+    "code_client": "CLI02",
+    "items":
+    [
+        {
+            "code_product": "PROD03",
+            "amount": "620"
+        },
+
+        {
+            "code_product": "PROD05",
+            "amount": "5000"
+        },
+
+        {
+            "code_product": "PROD08",
+            "amount": "340"
+        }
+    ]
+}
+
+# para retornar pedido por periodo de tempo:
+
+{
+    "time_interval": 
+    {
+        "start": "02/07/2026",
+        "end": "02/07/2026"
+    }
+    
+}

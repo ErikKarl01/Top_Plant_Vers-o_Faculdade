@@ -150,10 +150,9 @@ class OrderItem(models.Model):
         order = Order.objects.filter(code=code_order).first()
         return list(OrderItem.objects.filter(order=order))
     
-    def returnItem(self, code_order: str, code_product: str):
+    def returnItem(self, code_order: str) -> list:
         order = Order.objects.filter(code=code_order).first()
-        product = Product.objects.filter(code=code_product).first()
-        return OrderItem.objects.filter(order=order, product=product).first()
+        return list(OrderItem.objects.filter(order=order).all())
             
     def updateItem(self, code_order: str, code_product: str, amount: int):
         order = Order.objects.filter(code=code_order).first()
