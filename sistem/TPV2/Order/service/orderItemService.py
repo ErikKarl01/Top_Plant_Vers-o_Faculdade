@@ -16,7 +16,7 @@ class OrderItemService:
     def saveItem(self, code_order: str, code_product: str, amount: int):
         mens_code_ord = self.validateOrder.code(code_order)
         mens_code_prod = self.validate.validateCode(code_product)
-        mens_amount = self.validateOrder.validateInt(amount) if hasattr(self.validateOrder, 'validateInt') else MENSAGE_SUCESS
+        mens_amount = self.validateOrder.validateAmount(amount) 
         
         mens_erro = []
         if mens_code_ord != MENSAGE_SUCESS: mens_erro.append(mens_code_ord)
@@ -38,7 +38,7 @@ class OrderItemService:
     def updateItem(self, code_order: str, code_product: str, provided: int):
         mens_code_ord = self.validateOrder.code(code_order)
         mens_code_prod = self.validate.validateCode(code_product)
-        mens_amount = self.validateOrder.validateInt(provided) 
+        mens_amount = self.validateOrder.validateAmount(provided) 
         mens_erro = []
         if mens_code_ord != MENSAGE_SUCESS: mens_erro.append(mens_code_ord)
         if mens_code_prod != MENSAGE_SUCESS: mens_erro.append(mens_code_prod)
@@ -49,9 +49,20 @@ class OrderItemService:
             return self.response.erroMens(menssage=Errors.ORDER_DONT_EXISTS, status=400)
         if not self.p_model.productExists(code_product=code_product):
             return self.response.erroMens(menssage=ERROSPRO.PRODUCT_NOT_FOUND, status=400)
-        item = self.i_model.returnItem(code_order=code_order, code_product=code_product)
         
-        if item.amount - provided < 0:
+        try:
+            item = self.i_model.returnItemsByOrderProduct(code_order=code_order, code_product=code_product)
+            if not item:
+                return self.response.erroMens(menssage=Errors.ITEM_ORDER_NOT_FOUND, status=400)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
+        
+        try:
+            provided =  int(provided)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+        
+        if (item.amount - provided) < 0:
             return self.response.erroMens(menssage=Errors.AMOUNT_ERROR, status=400)
             
         try:

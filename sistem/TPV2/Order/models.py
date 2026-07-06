@@ -51,8 +51,13 @@ class Snapshot(models.Model):
             return snapshot
         return None
     
+    def returnSnapshot(self, code_snapshot: str):
+        if code_snapshot:
+            return Snapshot.objects.filter(code=code_snapshot).first()
+        return None
+    
     def listSnapshots(self):
-        return list(snapshots = Snapshot.objects.all())
+        return list(Snapshot.objects.all())
     
 
 class Order(models.Model):
@@ -101,6 +106,14 @@ class Order(models.Model):
             return order
         return None
     
+    def finalizeOrder(self, code_order: str):
+        if not code_order:
+            return None
+        order = Order.objects.filter(code=code_order).first()
+        order.status = "FINALIZADO"
+        order.save()
+        return order
+    
     def returnOrder(self, time_interval: dict={}, status: str='', code_client: str=''):
         orders = Order.objects.all()
         if time_interval:
@@ -146,9 +159,10 @@ class OrderItem(models.Model):
         item.save()
         return item
     
-    def returnItemsByOrderCode(self, code_order: str):
+    def returnItemsByOrderProduct(self, code_order: str, code_product: str):
+        product = Product.objects.filter(code=code_product).first()
         order = Order.objects.filter(code=code_order).first()
-        return list(OrderItem.objects.filter(order=order))
+        return OrderItem.objects.filter(order=order, product=product).first()
     
     def returnItem(self, code_order: str) -> list:
         order = Order.objects.filter(code=code_order).first()
@@ -159,7 +173,7 @@ class OrderItem(models.Model):
         product = Product.objects.filter(code=code_product).first()
         item = OrderItem.objects.filter(order=order, product=product).first()
         if item:
-            item.amount += amount
+            item.amount -= amount
             item.save()
             return item
         return None

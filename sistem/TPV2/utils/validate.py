@@ -59,7 +59,7 @@ CLIENT_MENSAGE_ERRO_VALIDATION = {
 
 PRODUCT_MENSAGE_ERRO_VALIDATION = {
     'name': 'Campo nome inválido para produto',
-    'price_and_discount': 'Valor inserido é inválido, somente valor numérico aceito',
+    'price': 'Valor inserido é inválido, somente valor numérico aceito',
     'description': 'Campo descrição inválido',
     'type': 'Campo tipo inválido, permitido apenas Ornamental e Hortaliça',
     'licenced': 'Campo licenciado inválido',
@@ -73,14 +73,14 @@ STOCK_MENSAGE_ERRO_VALIDATION = {
 }
 
 ORDER_MENSAGE_ERRO_VALIDATION = {
-    'float_': 'Campo preço ou disconto deve ser um número entre 0 e 1000000',
-    'status': 'Valor de status incorreto'
+    'price': 'Campo preço deve ser um número entre 0.0 e 1000000.0',
+    'discount': 'Campo disconto deve ser um número entre 0.0 e 1000000.0',
+    'status': 'Valor de status incorreto',
+    'amount': 'Quantidade inserida é incorreta, deve ser um valor inteiro não inferior a 0 nem maior que 1000000'
 }
 
 
 MENSAGE_SUCESS = 'SUCESS'
-
-
 
 def validateIE(val: str):
     val_str = str(val) or ""
@@ -103,6 +103,24 @@ class Validate:
         if not re.match(r"^[A-Z0-9]+$", val_str):
             return CODE_MENSAGE_ERRO_VALIDATION
         return MENSAGE_SUCESS
+    
+    def validateFloat(self, val: float):
+        try:
+            val_int = float(val)
+            if val_int < 0.0 or val_int > 1000000.0:
+                return False
+            return True
+        except:
+            return False
+        
+    def validateInt(self, val: int):
+            try:
+                val_int = int(val)
+                if val_int < 0 or val_int > 1000000:
+                    return False
+                return True
+            except:
+                return False
 
     def validateDate(self, time_interval):
         if isinstance(time_interval, dict):
@@ -277,7 +295,7 @@ class Validate:
             mensages = {
                 'mens_code': validate.validateCode(product.code),
                 'mens_name': self.name(product.name),
-                'mens_price': self.priceAndDiscount(product.price),
+                'mens_price': self.price(product.price),
                 'mens_description': self.description(product.description),
                 'mens_type': self.type(product.type),
                 'mens_measure': self.measure(product.measure),
@@ -318,6 +336,12 @@ class Validate:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
             return MENSAGE_SUCESS
         
+        def price(val: float):
+            validate = Validate()
+            if not validate.validateFloat(val=val):
+                return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
+            return MENSAGE_SUCESS
+        
         def licensed(self, val: bool):
             try:
                 val_bool = bool(val)
@@ -326,15 +350,6 @@ class Validate:
                 return MENSAGE_SUCESS
             except:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['licenced']
-            
-        def priceAndDiscount(self, val: float):
-            try:
-                val_int = float(val)
-                if val_int < 0.0 or val_int > 1000000.0:
-                    return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
-                return MENSAGE_SUCESS
-            except:
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['price_and_discount']
         
         def measure(self, val: str):
             val_str = str(val)
@@ -375,40 +390,18 @@ class Validate:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
             return MENSAGE_SUCESS
         
+        def amount(val: float):
+            validate = Validate()
+            if not validate.validateInt(val=val):
+                return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
+        
         def stock_type(self, val: str):
             val_str = str(val)
             if tamanhoExobitante(val=val_str) or not val_str or not val_str in PRODUCT_TYPES:
                 return STOCK_MENSAGE_ERRO_VALIDATION['type_stock']
             return MENSAGE_SUCESS
             
-        def amount(self, val: int):
-            try:
-                val_int = int(val)
-                if val_int < 0 or val_int > 1000000:
-                    return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
-                return MENSAGE_SUCESS
-            except:
-                return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
-            
-    class Oder:
-        def validateFloat(self, val: float):
-            try:
-                val_int = float(val)
-                if val_int < 0.0 or val_int > 1000000.0:
-                    return ORDER_MENSAGE_ERRO_VALIDATION['float_']
-                return MENSAGE_SUCESS
-            except:
-                return ORDER_MENSAGE_ERRO_VALIDATION['float_']
-            
-        def validateInt(self, val: int):
-            try:
-                val_int = int(val)
-                if val_int < 0 or val_int > 1000000:
-                    return ORDER_MENSAGE_ERRO_VALIDATION['float_']
-                return MENSAGE_SUCESS
-            except:
-                return ORDER_MENSAGE_ERRO_VALIDATION['float_']
-        
+    class Oder:        
         def code(self, val: str) -> str:
             val_str = str(val) or ""
             if tamanhoExobitante(val_str) or len(val_str) > 20 or len(val_str) < 4 or not val_str:
@@ -416,6 +409,24 @@ class Validate:
             if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
                 return CODE_MENSAGE_ERRO_VALIDATION
             return MENSAGE_SUCESS
+        
+        def validatePrice(self, val: float):
+            validate = Validate()
+            if not validate.validateFloat(val=val):
+                return ORDER_MENSAGE_ERRO_VALIDATION['price']
+            return MENSAGE_SUCESS
+         
+        def validateDiscount(self, val: float):
+            validate = Validate()
+            if not validate.validateFloat(val=val):
+                return ORDER_MENSAGE_ERRO_VALIDATION['discount']
+            return MENSAGE_SUCESS   
+        
+        def validateAmount(self, val: int):
+            validate = Validate()
+            if not validate.validateInt(val=val):
+                return ORDER_MENSAGE_ERRO_VALIDATION['amount']
+            return MENSAGE_SUCESS   
         
         def status(self, val: str):
             val_str = str(val) or ''

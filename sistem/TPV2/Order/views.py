@@ -5,32 +5,33 @@ from Order.service.serviceCentralize import ServiceCentralized
 from Order.models import Snapshot
 from utils.converet.convertOrder import ConvertSnapshot
 
-# Create your views here.
 class OrderController:
     service = ServiceCentralized()
     @csrf_exempt
     def updateSnapshot(self, request):
         data = json.loads(request.body)
-        code_snapshot = data.get('code_snapshot', '')
-        price_product = float(data.get('price_product', 0.0))
-        discount = float(data.get('discount', 0.0))
+        try:
+            code_snapshot = data.get('code_snapshot', '')
+            price_product = float(data.get('price_product', -1))
+            discount = float(data.get('discount', 0.0))
+        except Exception as e:
+            return JsonResponse(
+                {"mensagem": "Valor inválido detectado, somente valores numéricos são aceitos em preço e desconto"},
+                status=400)
         res = self.service.updateSnapshot(code_snapshot=code_snapshot, price_product=price_product, discount=discount)
         return JsonResponse(res, status=res.get('status', 200))
     
     @csrf_exempt
     def listSnapshots(self, request):
-        list_snapshots = list(Snapshot.objects.all())
-        dict_list = []
-        for snap in list_snapshots:
-            dict_list.append(ConvertSnapshot().toDict(snap))
-        return JsonResponse(dict_list, status=200, safe=False)
+        res = self.service.listSnapshots()
+        return JsonResponse(res, status=res.get('status', 200))
     
     @csrf_exempt
     def returSnapshotsOrdenated(self, request):
         data = json.loads(request.body)
         price_target = data.get('price_target', 0)
-        
-    pass
+        res = self.service.returnSnapshotsTarget(price_target)
+        return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt
     def createOrder(self, request):
@@ -38,6 +39,7 @@ class OrderController:
         code_client = data.get('code_client', '')
         items = data.get('items', [])
         res = self.service.createOrder(code_client=code_client, items=items)
+        print(res.get('status', 200))
         return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt

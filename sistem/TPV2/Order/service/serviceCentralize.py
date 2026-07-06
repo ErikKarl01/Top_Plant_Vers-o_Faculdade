@@ -20,6 +20,16 @@ class ServiceCentralized:
     c_order = ConvertOrder()
     c_snapshot = ConvertSnapshot()
     
+    def listSnapshots(self):
+        snapshots_list = self.snap_service.listSnapshots()
+        list_dicts = []
+        for snap in snapshots_list:
+            try:
+                list_dicts.append(self.c_snapshot.toDict(snap))
+            except Exception as e:
+                return self.response.erroMens(menssage=Errors.CONVERSION_ERROR, status=500)
+        return self.response.sucessMens(value=list_dicts, mensage=Success.ITEM_ORDER_RETURNED_SUCEFULD).toDict()
+    
     def saveSnapshot(self, code_product: str, price_product: float):
         code_prod_clean = cleanCode(code=code_product)
         response_save = self.snap_service.saveSnapshot(code_product=code_prod_clean, price=price_product)
@@ -41,26 +51,32 @@ class ServiceCentralized:
         return response_update.toDict()
     
     def returnSnapshotsTarget(self, price_target: float):
+        if not price_target:
+            return self.response.sucessMens(mensage="Não foi escolhido uma meta de preço", value=None)
         snaps = self.snap_service.listSnapshots()
         if not snaps:
             return self.response.sucessMens(mensage="Não há snapshots cadastrados", value=None)
         
-        dict_snaps_rest = {}
         list_snaps_rest = []
         
         for snap in snaps:
+            dict_snaps_rest = {}
             dict_snaps_rest['snap'] = snap
             dict_snaps_rest['rest'] = price_target%snap.price
-            list_snaps_rest.append
+            dict_snaps_rest['div_int'] = int(price_target/snap.price)
+            list_snaps_rest.append(dict_snaps_rest)
         
-        list_sort = sorted(dict_snaps_rest, key=dict_snaps_rest['rest'])
+        list_sort = sorted(dict_snaps_rest, key=lambda x: x['rest'])
         return_snaps = []
         
         for snap in list_sort:
             try:
-                return_snaps.append(self.c_snapshot.toDict(snap['snap']))
+                dict_rreturn = {}
+                dict_rreturn['snap'] = self.c_snapshot.toDict(snap['snap'])
             except Exception as e:
                 return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+            dict_rreturn['total_value'] = snap['div_int']*snap['snap'].price
+            return_snaps.append(dict_rreturn)
         return self.response.sucessMens(mensage='', value=return_snaps).toDict()
           
 
@@ -69,7 +85,7 @@ class ServiceCentralized:
         response_save_order = self.o_service.createOrder(code_client=code_order_clean)
         
         if not response_save_order.sucess:
-            return self.response.toDict()
+            return response_save_order.toDict()
         order = response_save_order.value
         list_items_order = []
         
@@ -80,7 +96,7 @@ class ServiceCentralized:
             if not response_save_item.sucess:
                 return response_save_item.toDict()
             item_model = response_save_item.value
-            
+            print(response_save_item.status)
             try:
                 item_dict = self.c_item.toDict(item=item_model)
                 order_dict = self.c_order.toDict(order)
@@ -119,18 +135,32 @@ class ServiceCentralized:
             except Exception as e:
                 return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         
+        mens_order_items = self.i_service.returnItems(order.code)
+        
+        if not mens_order_items.sucess:
+            return mens_order_items.toDict()
+        order_items = mens_order_items.value
+        
+        count = 0
+        for item in order_items:
+            if item.amount != 0:
+                count += 1
+        
+        if count == 0:
+            self.o_service.finalizeOrder(order.code)
+        
         dict_return = {}
         dict_return['order'] = order_dict or ''
         dict_return['items'] = list_items_order or ''
         
-        return self.response.sucessMens(mensage=Success.ORDER_MODIFIED_SUCEFULD, value=dict_return)
+        return self.response.sucessMens(mensage=Success.ORDER_MODIFIED_SUCEFULD, value=dict_return).toDict()
 
     def getOrderByCode(self, code_order: str):
         code_order_clean = cleanCode(code=code_order)
         resp_order = self.o_service.getOrderByCode(code_order=code_order_clean)
         if not resp_order.sucess:
             return resp_order.toDict()
-        resp_items = self.i_service.returnItem(code_order=code_order_clean)
+        resp_items = self.i_service.returnItems(code_order=code_order_clean)
         if not resp_items.sucess:
             return resp_items.toDict()  
         try:
