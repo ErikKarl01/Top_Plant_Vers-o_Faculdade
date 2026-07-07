@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 from Stock.service.stockService import StockService
 from Stock.service.stockItemService import StockItemService
-from Stock.service.serviceCentralize import ServiceCentralize
+from sistem.TPV2.Stock.service import ServiceCentralize
 from constants.responseClass import Response
 
 # IMPORTAÇÃO CRUCIAL PARA OS TESTES BATEREM COM O SERVICE

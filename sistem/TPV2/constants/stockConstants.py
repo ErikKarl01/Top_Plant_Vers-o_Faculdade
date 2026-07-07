@@ -1,19 +1,28 @@
-
+STOCK_OPERATIONS_CHOICES = [
+    ('CRIACAO', 'Criação'),
+    ('REMOCAO', 'Remoção'),
+    ('ADICAO', 'Adição'),
+]
 
 class Errors:
-    STOCK_ALREADY_EXISTS = "Stock already exists"
-    STOCK_NOT_FOUND = "Stock not found"
-    STOCK_ITEM_ALREADY_EXISTS = "Stock item already exists"
-    STOCK_ITEM_NOT_FOUND = "Stock item not found"
-    OPERATION_NOT_FOUND = "Operation not found"
-    MODELS_OPERATION = "Models operation error"
-    CONVERSION_ERROR = "Conversion error"
+    STOCK_ALREADY_EXISTS = "Estoque já existe"
+    STOCK_NOT_FOUND = "Estoque não encontrado"
+    STOCK_ITEM_ALREADY_EXISTS = "Item já cadastrado"
+    STOCK_ITEM_NOT_FOUND = "Item não encontrado no estoque"
+    OPERATION_NOT_FOUND = "Operação não encontrada"
+    MODELS_OPERATION = "Erro de operação no models"
+    CONVERSION_ERROR = "Erro de conversão de dados"
+    INVALID_CATEGORY = "Valor inválido para categoria"
+    INVALID_PRODUCTS_LICENSED = "Valor de produto licenciado inválido"
+    ITEM_NOT_INFORMATION = "Item não informado na requisição"
+    INSUFICIENT_STOCK = "Estoque insuficiente para a operação"
+    INVALID_STOCK_CODE = "Código de estoque inválido"
     
 class Success:
-    STOCK_CREATED = "Stock created successfully"
-    STOCK_UPDATED = "Stock updated successfully"
-    STOCK_DELETED = "Stock deleted successfully"
-    STOCK_ITEM_CREATED = "Stock item created successfully"
-    STOCK_ITEM_UPDATED = "Stock item updated successfully"
-    STOCK_ITEM_DELETED = "Stock item deleted successfully"
-    STOCK_DEACTIVATED = "Stock deactivated successfully"
+    STOCK_CREATED = "Estoque criado com sucesso"
+    STOCK_UPDATED = "Estoque atualizado com sucesso"
+    STOCK_DELETED = "Estoque excluído com sucesso"
+    STOCK_ITEM_CREATED = "Item de estoque criado com sucesso"
+    STOCK_ITEM_UPDATED = "Item de estoque atualizado com sucesso"
+    STOCK_ITEM_DELETED = "Item de estoque excluído com sucesso"
+    STOCK_DEACTIVATED = "Estoque desativado com sucesso"

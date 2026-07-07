@@ -1,6 +1,7 @@
 from __future__ import annotations
 from django.db import models
 from constants.productConstants import PRODUCT_TYPE_CHOICES
+from constants.stockConstants import STOCK_OPERATIONS_CHOICES
 from Product.models import Product
 from datetime import date as Date
 import secrets
@@ -22,6 +23,7 @@ class Stock(models.Model):
     code = models.CharField(
         max_length=20,
         default='Unnamed',
+        unique=True,
         null=False,
         blank=True
     )
@@ -32,71 +34,30 @@ class Stock(models.Model):
         blank=True,
         choices=PRODUCT_TYPE_CHOICES
     )
-    stove_name = models.CharField(
-        max_length=100,
-        default='Unnamed',
-        null=False,
-        blank=True
-    )
     date_criated = models.DateTimeField(auto_now_add=True)
-    activated = models.BooleanField(
-        default=False,
-        null=False,
-        blank=True
-    )
+    products_licensed = models.BooleanField(default=True, null=False, blank=False)
     
-    def stockCreate(self, category: str):
+    def stockCreate(self, category: str, products_licensed: bool):
         stock = Stock()
         stock.code = generateCodeStock()
         stock.category = category
-        stock.activated = True
+        stock.products_licensed = products_licensed
         stock.save()
         return stock
     
-    def stockExists(self, code_stock: str='', category: str=''):
-        if code_stock and category:
-            return Stock.objects.filter(code=code_stock, category=category).exists()
-        if code_stock:
-            return Stock.objects.filter(code=code_stock).exists()
-        if category:
-            return Stock.objects.filter(category=category).exists()
-        return None
-    
-    def stockUpdate(self, stove_name: str, stock_code: str):
-        stock_obj = Stock.objects.filter(code=stock_code).first()
-        if stove_name and stock_obj and stock_code:
-            stock_obj.stove_name = stove_name
-            stock_obj.save()
-            return stock_obj
-        return None
-    
-    def deactivateStock(self, code_stock):
-        if code_stock:
-            stock_obj = Stock.objects.filter(code=code_stock).first()
-            if stock_obj:
-                stock_obj.activated = False
-                stock_obj.save()
-        return None
-    
-    def stockDelete(self, stock_code: str):
-        if stock_code:
-            Stock.objects.filter(code=stock_code).first().delete()
-        return None
-    
-    def stockReturnFromCode(self, stock_code: str):
-        return Stock.objects.filter(code=stock_code).first()
+    def stockExists(self, category: str, products_licensed: bool):
+        if category and products_licensed:
+            return Stock.objects.filter(category=category, products_licensed=products_licensed).exists()
+        return False
 
-    def stockReturnForCategory(self, stock_category: str):
-        return Stock.objects.filter(category=stock_category).first()
-    
-    def stockReturnForStove(self, stove_name: str):
-        return list(Stock.objects.filter(stove_name=stove_name).all())
+    def stockReturnForCategory(self, stock_category: str, products_licensed: bool):
+        return Stock.objects.filter(category=stock_category, products_licensed=products_licensed).first()
     
     def stockList(self):
         return Stock.objects.all()
     
 class StockItem(models.Model):
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='item', null=False, blank=True)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='item', null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_item')
     amount = models.IntegerField(
         default=0,
@@ -105,11 +66,11 @@ class StockItem(models.Model):
     )
     
     def stockItemCreate(self, code_product: str, code_stock: str):
-        if not code_product:
+        if not code_product or not code_stock:
             return None
         item = StockItem()
-        item.stock = Stock.objects.filter(code=code_stock).first()
         item.product = Product.objects.filter(code=code_product).first()
+        item.stock = Stock.objects.filter(code=code_stock).first()
         item.save()
         return item
         
@@ -118,31 +79,34 @@ class StockItem(models.Model):
         return StockItem.objects.filter(product=product).exists()
         
     
-    def stockItemUpdate(self, product_code: str,  amount: int):
+    def removeAmount(self, product_code: str,  amount: int):
         product = Product.objects.filter(code=product_code).first()
         stock_item_obj = StockItem.objects.filter(product=product).first()
         if stock_item_obj:
-            stock_item_obj.amount = amount
+            stock_item_obj.amount -= amount
             stock_item_obj.save()
             return stock_item_obj
         return None
     
-    def stockItemDelete(self, code_product: str):
-        stock_item_obj = self.stockItemReturn(code_product=code_product)
+    def addAmount(self, product_code: str,  amount: int):
+        product = Product.objects.filter(code=product_code).first()
+        stock_item_obj = StockItem.objects.filter(product=product).first()
         if stock_item_obj:
-            stock_item_obj.delete()
+            stock_item_obj.amount += amount
+            stock_item_obj.save()
+            return stock_item_obj
         return None
     
     def stockItemReturn(self, name_product: str='', code_product: str=''):
         if name_product:
             item_obj = StockItem.objects.filter(product__name=name_product).first()
+            return item_obj
         if code_product:
             item_obj = StockItem.objects.filter(product__code=code_product).first()
-        if item_obj:
             return item_obj
         return None
     
-    def stockReturnList(self, stock_code: str=''):
+    def stockItemsList(self, stock_code: str=''):
         if stock_code:
             return StockItem.objects.filter(stock__code=stock_code)
         return None
@@ -161,19 +125,22 @@ class Operations(models.Model):
         null=False,
         blank=True
     )
-    
     type_operation = models.CharField(
         max_length=15,
-        default='Unnamed',
+        choices=STOCK_OPERATIONS_CHOICES,
         null=False,
-        blank=True
+        blank=False
     )
     
-    def operationCreate(self, operation: Operations) -> None:
-        if operation:
-            operation.save()
-            return operation
-        return None
+    def operationCreate(self, code_product: str, operation_type: str, value_after: int=0, value_before: int=0) -> None:
+        operation = Operations()
+        item_obj = StockItem.objects.filter(product__code=code_product).first()
+        operation.item_stock = item_obj  
+        operation.type_operation = operation_type
+        if value_after and value_before:
+            operation.value_after = value_after
+            operation.value_before = value_before
+        operation.save()
     
     def operationsReturn(self, stock_code: str='', code_product: str='', time_interval: dict={}) -> list:
         if stock_code:

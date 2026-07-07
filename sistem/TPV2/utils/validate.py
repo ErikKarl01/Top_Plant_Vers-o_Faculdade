@@ -358,48 +358,6 @@ class Validate:
             if not re.match(r"^[A-Za-z/,.-]+$", val_str):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
             return MENSAGE_SUCESS
-        
-    class Stock:
-        def forRegister(self, stock: Any):
-            mensages = {
-                'mens_stove_name': self.stoveName(stock.stove_name),
-                'type_stock': self.stock_type(stock.category)
-            }
-            mensages_error = []
-            if mensages.get('mens_stove_name'):
-                mensages_error.append(mensages.get('mens_stove_name'))
-            if mensages.get('type_stock'):
-                mensages_error.append(mensages.get('type_stock'))
-            if mensages_error:
-                return mensages_error
-            return MENSAGE_SUCESS
-        
-        def code(self, val: str) -> str:
-            val_str = str(val) or ""
-            if tamanhoExobitante(val_str) or len(val_str) > 20 or len(val_str) < 4 or not val_str:
-                return CODE_MENSAGE_ERRO_VALIDATION
-            if not re.match(r"^[A-Z0-9]+$", val_str.upper()):
-                return CODE_MENSAGE_ERRO_VALIDATION
-            return MENSAGE_SUCESS
-        
-        def stoveName(self, val: str):
-            val_str = str(val)
-            if tamanhoExobitante(val=val_str) or not val_str or len(val_str) < 4:
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
-            if not re.match(r"^[A-Za-zÀ-ÖØ-öø-ÿ'0-9 -]+$", val_str):
-                return PRODUCT_MENSAGE_ERRO_VALIDATION['name']
-            return MENSAGE_SUCESS
-        
-        def amount(val: float):
-            validate = Validate()
-            if not validate.validateInt(val=val):
-                return STOCK_MENSAGE_ERRO_VALIDATION['item_stock_amount']
-        
-        def stock_type(self, val: str):
-            val_str = str(val)
-            if tamanhoExobitante(val=val_str) or not val_str or not val_str in PRODUCT_TYPES:
-                return STOCK_MENSAGE_ERRO_VALIDATION['type_stock']
-            return MENSAGE_SUCESS
             
     class Oder:        
         def code(self, val: str) -> str:

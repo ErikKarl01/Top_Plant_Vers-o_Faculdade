@@ -1,105 +1,43 @@
-import json
+from Stock.service import Service
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from Stock.service.serviceCentralize import ServiceCentralize
-class StockController:
-    service = ServiceCentralize()
+import json
 
-    def _get_data(self, request):
-        if not request.body:
-            return {}
-        try:
-            return json.loads(request.body)
-        except json.JSONDecodeError:
-            return None
 
+class Controller:
+    response = Service()
+    
     @csrf_exempt
-    def createItemStock(self, request):
-        if request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            code_product = data.get('code_product', '')
-            type_product = data.get('type_product', '')
-            
-            res = self.service.createItemStockResponse(code_product=code_product, type_product=type_product)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
+    def addAmount(self, request):
+        data = json.loads(request.body)
+        code_product = data.get('code_product', '')
+        amount = data.get('amount', 0)
+        res = self.response.addAmount(code_product=code_product, amount=amount).toDict()
+        return JsonResponse(res, status=res.get('code', 200), safe=False)
+    
     @csrf_exempt
-    def returnStockWithItems(self, request):
-        if request.method == 'POST' or request.method == 'GET':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            stock_code = data.get('stock_code', '')
-            
-            res = self.service.returnStockWithItemsResponse(stock_code=stock_code)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
+    def removeAmount(self, request):
+        data = json.loads(request.body)
+        code_product = data.get('code_product', '')
+        amount = data.get('amount', 0)
+        res = self.response.removeAmount(code_product=code_product, amount=amount).toDict()
+        return JsonResponse(res, status=res.get('code', 200), safe=False)
+    
     @csrf_exempt
-    def modifyStock(self, request):
-        if request.method == 'PUT' or request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            stove_name = data.get('stove_name', '')
-            stock_code = data.get('stock_code', '')
-            
-            res = self.service.modifyStockResponse(stove_name=stove_name, stock_code=stock_code)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
+    def stockReturnForCategory(self, request):
+        data = json.loads(request.body)
+        category = data.get('category', '')
+        products_licensed = data.get('products_licensed', False)
+        res = self.response.stockReturnForCategory(category=category, products_licensed=products_licensed).toDict()
+        return JsonResponse(res, status=res.get('code', 200), safe=False)
+    
     @csrf_exempt
-    def updateAmountAndLog(self, request):
-        if request.method == 'PUT' or request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            product_code = data.get('product_code', '')
-            operation_type = data.get('operation_type', '')
-            
-            raw_amount = data.get('amount_changed', 0)
-            try:
-                amount_changed = int(raw_amount if raw_amount is not None else 0)
-            except ValueError:
-                return JsonResponse({'message': 'Erro de tipo: amount_changed deve ser um número inteiro válido.'}, status=400)
-            
-            res = self.service.updateAmountAndLogResponse(
-                product_code=product_code, 
-                operation_type=operation_type, 
-                amount_changed=amount_changed
-            )
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
-    @csrf_exempt
-    def deleteStock(self, request):
-        if request.method == 'DELETE' or request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            stock_code = data.get('stock_code', '')
-            
-            res = self.service.deleteStockResponse(stock_code=stock_code)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
-
-    @csrf_exempt
-    def deleteStockItem(self, request):
-        if request.method == 'DELETE' or request.method == 'POST':
-            data = self._get_data(request)
-            if data is None:
-                return JsonResponse({'message': 'JSON inválido ou malformado.'}, status=400)
-                
-            code_product = data.get('code_product', '')
-            
-            res = self.service.deleteStockItemResponse(code_product=code_product)
-            return JsonResponse(res, status=res.get('status', 200))
-        return JsonResponse({'message': 'Método não permitido'}, status=405)
+    def operationsReturn(self, request):
+        data = json.loads(request.body)
+        code_product = data.get('code_product', '')
+        stock_code = data.get('stock_code', '')
+        time_interval = data.get('time_interval', {})
+        res = self.response.operationsReturn(stock_code=stock_code,
+                                             code_product=code_product,
+                                             time_interval=time_interval).toDict()
+        return JsonResponse(res, status=res.get('code', 200), safe=False)

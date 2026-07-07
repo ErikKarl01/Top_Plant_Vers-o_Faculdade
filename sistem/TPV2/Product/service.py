@@ -6,6 +6,7 @@ from constants.responseClass import Response
 from Product.models import Product
 from constants.productConstants import Errors, Success
 from Order.service.serviceCentralize import ServiceCentralized
+from Stock.service import Service as StockService
 
 def cleanProduct(product: ProductDTO) -> ProductDTO:
     toClean = ToClean()
@@ -24,6 +25,7 @@ class Service:
     toClean = ToClean()
     response = Response()
     p_model = Product()
+    s_stock = StockService()
     snapshot_create = ServiceCentralized()
 
     def productSave(self, product: ProductDTO):
@@ -50,7 +52,8 @@ class Service:
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         self.snapshot_create.saveSnapshot(code_product=product_saved.code, price_product=product_saved.price)
-
+        self.s_stock.stockCreate(category=product_saved.type, products_licensed=product_saved.licensed,
+                                                                        code_product=product_saved.code)
         return self.response.sucessMens(mensage=Success.PRODUCT_REGISTERED, value=product_return)
 
 
