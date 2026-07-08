@@ -12,6 +12,7 @@ class Errors:
     DICOUNT_BIGGER_PRICE = "Não é permitido um valor de disconto maior ou igual ao preço do produto"
     CONVERSION_ERROR = "Erro de conversão de pedido ou item"
     AMOUNT_ERROR = "Quantidade inserida é invalida"
+    INSULFFICIENT_STOCK = "Quantidade de estoque insuficiente ppara operação"
 
 class Success:
     ORDER_DELETE_SUCEFULD = "Pedido excluído com sucesso"

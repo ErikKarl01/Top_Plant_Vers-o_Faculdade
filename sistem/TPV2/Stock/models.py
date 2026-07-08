@@ -63,6 +63,13 @@ class StockItem(models.Model):
         blank=True
     )
     
+    def returItemAmount(self, code_product: str):
+        product = Product.objects.filter(code=code_product).first()
+        item = StockItem.objects.filter(product=product).first()
+        if item:
+            return item.amount
+        return 0
+    
     def stockItemCreate(self, code_product: str, code_stock: str):
         if not code_product or not code_stock:
             return None

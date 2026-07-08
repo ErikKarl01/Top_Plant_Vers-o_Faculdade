@@ -57,6 +57,9 @@ class Service:
         except Exception as e:
             return self.response.erroMens(menssage=[self.errors.MODELS_OPERATION, str(e)], status=500)
         return self.response.sucessMens(mensage=self.sucess.STOCK_ITEM_CREATED, value=item_model)
+    
+    def retusrItemAmount(self, code_product: str):
+        return self.item_model.returItemAmount(code_product=code_product)
 
     def addAmount(self, code_product: str, amount: int) -> Response:
         mens_validate = self.validate.validateCode(val=code_product)

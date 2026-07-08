@@ -1,5 +1,6 @@
 from utils.toClean import ToClean
 from constants.responseClass import Response
+from Stock.service import Service as StockService
 from utils.converet.convertOrder import ConvertOrderItem, ConvertOrder, ConvertSnapshot
 from Order.service.orderItemService import OrderItemService
 from Order.service.orderService import OrderService
@@ -19,6 +20,7 @@ class ServiceCentralized:
     c_item = ConvertOrderItem()
     c_order = ConvertOrder()
     c_snapshot = ConvertSnapshot()
+    stock_service = StockService()
     
     def listSnapshots(self):
         snapshots_list = self.snap_service.listSnapshots()
@@ -28,33 +30,33 @@ class ServiceCentralized:
                 list_dicts.append(self.c_snapshot.toDict(snap))
             except Exception as e:
                 return self.response.erroMens(menssage=Errors.CONVERSION_ERROR, status=500)
-        return self.response.sucessMens(value=list_dicts, mensage=Success.ITEM_ORDER_RETURNED_SUCEFULD).toDict()
+        return self.response.sucessMens(value=list_dicts, mensage=Success.ITEM_ORDER_RETURNED_SUCEFULD)
     
     def saveSnapshot(self, code_product: str, price_product: float):
         code_prod_clean = cleanCode(code=code_product)
         response_save = self.snap_service.saveSnapshot(code_product=code_prod_clean, price=price_product)
         if not response_save.sucess:
-            return response_save.toDict()
-        return response_save.toDict()
+            return response_save
+        return response_save
         
     def updateSnapshot(self, code_snapshot: str, price_product: float, discount: float):
         code_snap_clean = cleanCode(code=code_snapshot)
         response_update = self.snap_service.updateSnapshot(code_snapshot=code_snap_clean, price=price_product, discount=discount)
         if not response_update.sucess:
-            return response_update.toDict()
+            return response_update
         try:
             response_update.value = self.c_snapshot.toDict(response_update.value)
         except Exception as e:
-            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict() 
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500) 
         if not response_update.sucess:
-            return response_update.toDict()
-        return response_update.toDict()
+            return response_update
+        return response_update
     
     def updateSnapshotPrice(self, code_product: str, price_product: float):
         code_clean = cleanCode(code=code_product)
         response_update = self.snap_service.updateSnapshotPrice(code_product=code_clean, price_product=price_product)
         if not response_update.sucess:
-            return response_update.toDict()
+            return response_update
         return self.response.sucessMens(mensage=Success.ITEM_ORDER_MODIFIED_SUCEFULD, value=response_update.value)
     
     def returnSnapshotsTarget(self, price_target: float):
@@ -84,7 +86,7 @@ class ServiceCentralized:
                 return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
             dict_rreturn['total_value'] = snap['div_int']*snap['snap'].price
             return_snaps.append(dict_rreturn)
-        return self.response.sucessMens(mensage='', value=return_snaps).toDict()
+        return self.response.sucessMens(mensage='', value=return_snaps)
           
 
     def createOrder(self, code_client: str, items: list):
@@ -92,16 +94,18 @@ class ServiceCentralized:
         response_save_order = self.o_service.createOrder(code_client=code_order_clean)
         
         if not response_save_order.sucess:
-            return response_save_order.toDict()
+            return response_save_order
         order = response_save_order.value
         list_items_order = []
         
         for item in items:
-            code_product_clean = cleanCode(item.get('code_product', ''))
-            amount = item.get('amount', 0)
+            code_product_clean = cleanCode(item.product.code)
+            amount = item.amount
+            if self.stock_service.retusrItemAmount(code_product_clean) < amount:
+                return self.response.erroMens(menssage=Errors.INSULFFICIENT_STOCK, status=400)
             response_save_item = self.i_service.saveItem(code_order=order.code, code_product=code_product_clean, amount=amount)
             if not response_save_item.sucess:
-                return response_save_item.toDict()
+                return response_save_item
             item_model = response_save_item.value
             print(response_save_item.status)
             try:
@@ -109,19 +113,19 @@ class ServiceCentralized:
                 order_dict = self.c_order.toDict(order)
                 list_items_order.append(item_dict)
             except Exception as e:
-                return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict()
+                return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
         
         dict_return = {}
         dict_return['order'] = order_dict
         dict_return['items'] = list_items_order
         
-        return self.response.sucessMens(mensage=Success.ORDER_CREATED_SUCEFULD, value=dict_return).toDict()
+        return self.response.sucessMens(mensage=Success.ORDER_CREATED_SUCEFULD, value=dict_return)
     
     def updateOrder(self, code_order: str, items: list):
         code_clean = cleanCode(code=code_order)
         mens_update_order = self.o_service.updateOrder(code_order=code_clean)
         if not mens_update_order.sucess:
-            return mens_update_order.toDict()
+            return mens_update_order
         order = mens_update_order.value
         list_items_order = []
         
@@ -132,7 +136,7 @@ class ServiceCentralized:
                 code_product=code_product_clean, provided=provided)
             
             if not response_save_item.sucess:
-                return response_save_item.toDict()
+                return response_save_item
             item_model = response_save_item.value
             
             try:
@@ -145,7 +149,7 @@ class ServiceCentralized:
         mens_order_items = self.i_service.returnItems(order.code)
         
         if not mens_order_items.sucess:
-            return mens_order_items.toDict()
+            return mens_order_items
         order_items = mens_order_items.value
         
         count = 0
@@ -160,43 +164,49 @@ class ServiceCentralized:
         dict_return['order'] = order_dict or ''
         dict_return['items'] = list_items_order or ''
         
-        return self.response.sucessMens(mensage=Success.ORDER_MODIFIED_SUCEFULD, value=dict_return).toDict()
+        return self.response.sucessMens(mensage=Success.ORDER_MODIFIED_SUCEFULD, value=dict_return)
+    
+    def totalValueReturn(self, items: list):
+        if not items or not all(item.product and item.amount for item in items):
+            return 
+        total = sum(item.product.price * item.amount for item in items)
+        return self.response.sucessMens(mensage='Total do pedido:', value=total)
 
     def getOrderByCode(self, code_order: str):
         code_order_clean = cleanCode(code=code_order)
         resp_order = self.o_service.getOrderByCode(code_order=code_order_clean)
         if not resp_order.sucess:
-            return resp_order.toDict()
+            return resp_order
         resp_items = self.i_service.returnItems(code_order=code_order_clean)
         if not resp_items.sucess:
-            return resp_items.toDict()  
+            return resp_items 
         try:
             order_dict = self.c_order.toDict(resp_order.value)
             items_dict = [self.c_item.toDict(item) for item in resp_items.value]
         except Exception as e:
-            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict()  
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500) 
         dict_return = {'order': order_dict, 'order_items': items_dict}
-        return self.response.sucessMens(mensage=Success.ORDER_RETURNED_SUCEFULD, value=dict_return).toDict()
+        return self.response.sucessMens(mensage=Success.ORDER_RETURNED_SUCEFULD, value=dict_return)
 
     def returnOrder(self, time_interval: dict={}, status: str='', code_client: str=''):
         code_client_clean = cleanCode(code=code_client) if code_client else ''
         resp_orders = self.o_service.returnOrder(time_interval=time_interval, status=status, code_client=code_client_clean)
         if not resp_orders.sucess:
-            return resp_orders.toDict()  
+            return resp_orders
         list_return = []
         try:
             for order in resp_orders.value:
                 resp_items = self.i_service.returnItems(code_order=order.code)
                 if not resp_items.sucess:
-                    return resp_items.toDict()
+                    return resp_items
                 order_dict = self.c_order.toDict(order)
                 items_dict = [self.c_item.toDict(item) for item in resp_items.value]
                 list_return.append({'order': order_dict, 'order_items': items_dict})
         except Exception as e:
-            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict() 
-        return self.response.sucessMens(mensage=Success.ORDER_RETURNED_SUCEFULD, value=list_return).toDict()
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
+        return self.response.sucessMens(mensage=Success.ORDER_RETURNED_SUCEFULD, value=list_return)
 
     def deleteOrder(self, code_order: str):
         code_order_clean = cleanCode(code=code_order)
         resp_delete = self.o_service.deleteOrder(code_order=code_order_clean)
-        return resp_delete.toDict()
+        return resp_delete
