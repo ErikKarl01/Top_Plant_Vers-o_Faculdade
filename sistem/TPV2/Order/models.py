@@ -41,7 +41,16 @@ class Snapshot(models.Model):
         snapshot.price = price
         snapshot.save()
         return snapshot
-        
+    
+    def updatePrice(self, code_product: str, price: float):
+        product = Product.objects.filter(code=code_product).first()
+        snapshot = Snapshot.objects.filter(product=product).first()
+        if product and snapshot:
+            snapshot.price = price
+            snapshot.save()
+            return snapshot
+        return None
+
     def updateSnapshot(self, code_snapshot: str, price: float, discount: float):
         snapshot = Snapshot.objects.filter(code=code_snapshot).first()
         if snapshot:

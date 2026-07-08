@@ -46,9 +46,7 @@ class Stock(models.Model):
         return stock
     
     def stockExists(self, category: str, products_licensed: bool):
-        if category and products_licensed:
-            return Stock.objects.filter(category=category, products_licensed=products_licensed).exists()
-        return False
+        return Stock.objects.filter(category=category, products_licensed=products_licensed).exists()
 
     def stockReturnForCategory(self, stock_category: str, products_licensed: bool):
         return Stock.objects.filter(category=stock_category, products_licensed=products_licensed).first()
@@ -143,21 +141,14 @@ class Operations(models.Model):
         operation.save()
     
     def operationsReturn(self, stock_code: str='', code_product: str='', time_interval: dict={}) -> list:
+        filters = {}
         if stock_code:
-            return list(Operations.objects.filter(item_stock__stock__code=stock_code).all())
+            filters['item_stock__stock__code'] = stock_code
+            
         if code_product:
-            return list(Operations.objects.filter(item_stock__product__code=code_product).all())
-        if time_interval:
-            return list(Operations.objects.filter(date_operation__range=(time_interval['start'], time_interval['end'])).all())
-        if stock_code and code_product:
-            return list(Operations.objects.filter(item_stock__stock__code=stock_code, item_stock__product__code=code_product).all())
-        if stock_code and time_interval:
-            return list(Operations.objects.filter(item_stock__stock__code=stock_code,
-            date_operation__range=(time_interval['start'], time_interval['end'])).all())
-        if code_product and time_interval:
-            return list(Operations.objects.filter(item_stock__product__code=code_product, 
-            date_operation__range=(time_interval['start'], time_interval['end'])).all())
-        if stock_code and code_product and time_interval:
-            return list(Operations.objects.filter(item_stock__stock__code=stock_code, item_stock__product__code=code_product,
-            date_operation__range=(time_interval['start'], time_interval['end'])).all())
-        return list(Operations.objects.all()) 
+            filters['item_stock__product__code'] = code_product
+            
+        if time_interval and 'start' in time_interval and 'end' in time_interval:
+            filters['date_operation__date__range'] = (time_interval['start'], time_interval['end'])
+
+        return list(Operations.objects.filter(**filters))

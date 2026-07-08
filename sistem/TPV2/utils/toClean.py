@@ -43,7 +43,7 @@ class ToClean:
         return val_str
 
     def enums(self, val: str):
-        val_str = str(val or '').strip().upper()
+        val_str = str(val or '').strip()
         return val_str
 
     def text(self, val: str):

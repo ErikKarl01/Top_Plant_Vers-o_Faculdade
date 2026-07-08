@@ -10,6 +10,7 @@ class Errors:
     PRODUCT_NOT_FOUND = 'Produto não encontrado.'
     CONVERSION_ERROR = 'Erro durante a conversão de objetos.'
     MODELS_ERROR = 'Erro de operação no models.'
+    NULL_FIELDS = 'Campos obrigatórios não preenchidos.'
     
 class Success:
     PRODUCT_REGISTERED = 'Produto cadastrado com sucesso.'

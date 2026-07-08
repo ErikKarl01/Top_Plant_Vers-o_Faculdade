@@ -1,4 +1,16 @@
 {
+    "product": {
+        "code": "PROD057",
+        "name": "Tomate green",
+        "price": 20,
+        "description": "",
+        "type": "Hortaliças",
+        "measure": "Kg",
+        "licensed": false
+    }
+}
+
+{
     "client":
     {
         "code": "CLI02",
@@ -52,4 +64,15 @@
         "end": "02/07/2026"
     }
     
+}
+
+#stock
+
+{
+    "code_product": "",
+    "stock_code": "",
+    "time_interval": {
+        "star": "07/07/2026",
+        "end": "07/07/2026"
+    }
 }

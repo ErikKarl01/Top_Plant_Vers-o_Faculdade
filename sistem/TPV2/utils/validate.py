@@ -34,7 +34,7 @@ PEOPLE_PLACE_LIST = [t[0] for t in TYPE_PEOPLEPLACE_CHOICES]
 ADRESS_TYPE_LIST = [t[0] for t in ADRESS_TYPE]
 DOCUMENT_TYPE_LIST = [t[0] for t in DOCUMENT_TYPE]
 
-PRODUCT_TYPES = [t[0] for t in PRODUCT_TYPE_CHOICES]
+PRODUCT_TYPES = [t[1] for t in PRODUCT_TYPE_CHOICES]
 
 STATUS_ORDER_ = [t[0] for t in STATUS_ORDER_CHOICES]
     
@@ -115,6 +115,8 @@ class Validate:
         
     def validateInt(self, val: int):
             try:
+                if not isinstance(val, int):
+                    return False
                 val_int = int(val)
                 if val_int < 0 or val_int > 1000000:
                     return False
@@ -333,10 +335,11 @@ class Validate:
             if tamanhoExobitante(val=val_str) or not val_str:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
             if not val_str in PRODUCT_TYPES:
+                print(PRODUCT_TYPES)
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['type']
             return MENSAGE_SUCESS
         
-        def price(val: float):
+        def price(self, val: float):
             validate = Validate()
             if not validate.validateFloat(val=val):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['price']
@@ -353,7 +356,7 @@ class Validate:
         
         def measure(self, val: str):
             val_str = str(val)
-            if tamanhoExobitante(val=val_str) or not val_str:
+            if tamanhoExobitante(val=val_str) or not val_str or len(val_str) > 10:
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']
             if not re.match(r"^[A-Za-z/,.-]+$", val_str):
                 return PRODUCT_MENSAGE_ERRO_VALIDATION['measure']

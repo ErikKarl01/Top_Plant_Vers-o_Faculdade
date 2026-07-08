@@ -17,6 +17,8 @@ class Errors:
     ITEM_NOT_INFORMATION = "Item não informado na requisição"
     INSUFICIENT_STOCK = "Estoque insuficiente para a operação"
     INVALID_STOCK_CODE = "Código de estoque inválido"
+    INVALID_AMOUNT = "Valor de quantidade inválido"
+    LIMIT_EXCEEDED = "Limite de estoque excedido"
     
 class Success:
     STOCK_CREATED = "Estoque criado com sucesso"

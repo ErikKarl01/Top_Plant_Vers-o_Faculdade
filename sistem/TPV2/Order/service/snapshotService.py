@@ -13,7 +13,7 @@ class SnapshotService:
     
     def saveSnapshot(self, code_product: str, price: float):
         mens_code = self.validate.validateCode(code_product)
-        mens_price = self.validate_order.validateFloat(price) 
+        mens_price = self.validate_order.validatePrice(price) 
         mensages_erro = []
         
         if mens_code != MENSAGE_SUCESS: mensages_erro.append(mens_code)
@@ -64,6 +64,22 @@ class SnapshotService:
         except Exception as e: 
             return self.response.erroMens(menssage=["Erro na modificação de proço do produto", str(e)], status=500)   
         return self.response.sucessMens(mensage="Snapshot atualizado com sucesso.", value=snapshot_model)
+    
+    def updateSnapshotPrice(self, code_product: str, price_product: float):
+        mens_code = self.validate.validateCode(code_product)
+        mens_price = self.validate_order.validatePrice(price_product)
+        mens_erro = []
+        if mens_code != MENSAGE_SUCESS: mens_erro.append(mens_code)
+        if mens_price != MENSAGE_SUCESS: mens_erro.append(mens_price)
+        if mens_erro: return self.response.erroMens(menssage=mens_erro, status=400)
+        
+        try:
+            snapshot_model = self.s_model.updatePrice(code_product=code_product, price=float(price_product))
+            if not snapshot_model:
+                return self.response.erroMens(menssage="Snapshot não encontrado.", status=400)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
+        return self.response.sucessMens(mensage="Snapshot atualizado com sucesso.", value=None)
     
     def listSnapshots(self):
         return self.s_model.listSnapshots()

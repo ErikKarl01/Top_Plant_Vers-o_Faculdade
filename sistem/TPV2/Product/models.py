@@ -60,7 +60,6 @@ class Product (models.Model):
             product_obj = Product.objects.filter(code=code_product).first()
             product_obj.code = product.code
             product_obj.name = product.name
-            product_obj.price = product.price
             product_obj.type = product.type
             product_obj.measure = product.measure
             product_obj.description = product.description
@@ -76,6 +75,8 @@ class Product (models.Model):
         return None
     
     def productReturn(self, code_product: str='', name: str='') -> Product | None:
+        if code_product and name:
+            return Product.objects.filter(code=code_product, name=name).first()
         if code_product:
             return Product.objects.filter(code=code_product).first()
         if name:
@@ -92,14 +93,6 @@ class Product (models.Model):
         product = self.productReturn(code_product=code_product, name=name)
         if product and price:
             product.price = price
-            product.save()
-            return product
-        return None
-
-    def productUpdateDiscount(self, code_product: str='', name: str='', discount: float=0.0) -> Product:
-        product = self.productReturn(code_product=code_product, name=name)
-        if product and discount is not None:
-            product.discount = discount
             product.save()
             return product
         return None

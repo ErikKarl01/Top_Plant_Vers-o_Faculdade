@@ -50,6 +50,13 @@ class ServiceCentralized:
             return response_update.toDict()
         return response_update.toDict()
     
+    def updateSnapshotPrice(self, code_product: str, price_product: float):
+        code_clean = cleanCode(code=code_product)
+        response_update = self.snap_service.updateSnapshotPrice(code_product=code_clean, price_product=price_product)
+        if not response_update.sucess:
+            return response_update.toDict()
+        return self.response.sucessMens(mensage=Success.ITEM_ORDER_MODIFIED_SUCEFULD, value=response_update.value)
+    
     def returnSnapshotsTarget(self, price_target: float):
         if not price_target:
             return self.response.sucessMens(mensage="Não foi escolhido uma meta de preço", value=None)
