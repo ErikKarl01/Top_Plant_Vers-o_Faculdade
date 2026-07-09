@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Produto | Top Plant V2</title>
+    
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <style>
+        .form-control.input-error {
+            border-color: var(--color-danger);
+            background-color: #FFFAFA;
+        }
+        .form-control.input-error:focus {
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+        }
+        .error-message {
+            color: var(--color-danger);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <div class="data-panel">
+            
+            <div class="panel-header">
+                <h2>Novo Produto</h2>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Código do Produto</label>
+                    <input type="text" id="regCode" class="form-control" placeholder="Ex: H001">
+                    <span id="errCode" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input type="text" id="regName" class="form-control" placeholder="Ex: Tomate Cereja">
+                    <span id="errName" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <input type="text" id="regType" class="form-control" placeholder="Ex: Hortaliça">
+                    <span id="errType" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Medida</label>
+                    <input type="text" id="regMeasure" class="form-control" placeholder="Ex: KG">
+                    <span id="errMeasure" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Preço (R$)</label>
+                    <input type="number" id="regPrice" class="form-control" step="0.01" placeholder="0.00">
+                    <span id="errPrice" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Licenciado?</label>
+                    <select id="regLicensed" class="form-control">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                    <span id="errLicensed" class="error-message"></span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label">Descrição (Opcional)</label>
+                <textarea id="regDesc" class="form-control" rows="3" placeholder="Detalhes do produto..."></textarea>
+                <span id="errDesc" class="error-message"></span>
+            </div>
+
+            <div class="stock-actions" style="margin-top: 2rem; justify-content: flex-end;">
+                <a href="/product/" class="btn btn-cancel">Cancelar</a>
+                <button class="btn btn-positive" onclick="submitProduct()">Cadastrar Produto</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="{% static 'js/product_register.js' %}"></script>
+
+</body>
+</html>

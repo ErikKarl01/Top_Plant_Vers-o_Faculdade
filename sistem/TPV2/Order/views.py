@@ -49,6 +49,13 @@ class OrderController:
         items_to_discount = data.get('items_to_discount', [])
         res = self.service.updateOrder(code_order=code_order, items=items_to_discount).toDict()
         return JsonResponse(res, status=res.get('status', 200))
+    
+    @csrf_exempt
+    def totalValuenReturn(self, request):
+        data = json.loads(request.body)
+        items = data.get('items', [])
+        res = self.service.totalValueReturn(items=items).toDict()
+        return JsonResponse(res, status=res.get('status', 200))
 
     @csrf_exempt
     def getOrderByCode(self, request):

@@ -1,6 +1,7 @@
 from utils.validate import Validate, MENSAGE_SUCESS
 from Order.models import Snapshot
 from Product.models import Product
+from constants.productConstants import Errors as P_erros
 from constants.responseClass import Response
 from constants.orderConstantes import Errors, Success
 
@@ -28,6 +29,18 @@ class SnapshotService:
         except Exception as e:
             return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage="Snapshot criado com sucesso.", value=snapshot_model)
+    
+    def snapshotReturn(self, code_product: str):
+        mens_code = self.validate.validateCode(code_product)
+        if mens_code != MENSAGE_SUCESS:
+            return self.response.erroMens(menssage=mens_code, status=400)
+        if not self.p_model.productExists(code_product=code_product):
+            return self.response.erroMens(menssage=P_erros.PRODUCT_NOT_FOUND, status=400)
+        try:
+            snap_ = self.s_model.returnSnapshotByProduct(code_product=code_product)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.MODELS_ERROR, str(e)], status=500)
+        return self.response.sucessMens(mensage=Success.ITEM_ORDER_RETURNED_SUCEFULD, value=snap_)
 
     def updateSnapshot(self, code_snapshot: str, price: float, discount: float):
         mens_code = self.validate.validateCode(code_snapshot)

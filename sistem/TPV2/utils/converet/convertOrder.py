@@ -1,5 +1,4 @@
 from Order.models import Order, OrderItem, Snapshot
-from Order.dto import OrderItemDTO
 
 class ConvertOrder:
     def toDict(self, order: Order):
@@ -20,12 +19,6 @@ class ConvertOrderItem:
             'price': item.price,
             'discount': item.discount
         }
-        
-    def toDTO(item: dict):
-        return OrderItemDTO(
-            amount=item.get('amount'),
-            discount=item.get('product_code')
-        )
         
 class ConvertSnapshot:
     def toDict(self, snapsot: Snapshot):

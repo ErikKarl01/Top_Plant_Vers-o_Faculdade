@@ -4,6 +4,9 @@ from Product.views import Controller
 controller = Controller()
 
 urlpatterns = [
+    path('', controller.home, name='product_home'),
+    path('register/', controller.save_prod, name='template_product_register'),
+    path('edit/', controller.product_edit_view, name='template_product_edit'),
     #Testado
     path('save/', controller.saveProduct, name='save_product'),
     #Testado

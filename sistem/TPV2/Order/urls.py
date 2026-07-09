@@ -17,5 +17,9 @@ urlpatterns = [
     #Testado
     path('order/delete/', controller.deleteOrder, name='delete_order'),
     #Testado
-    path('snapshot/list/', controller.listSnapshots, name='return_snapshots')
+    path('snapshot/list/', controller.listSnapshots, name='return_snapshots'),
+    #Testado
+    path('snapshot/ordenated_by_target/', controller.returSnapshotsOrdenated, name='snapshot_ordenated_by_target'),
+    #Testado
+    path('total_order/', controller.totalValuenReturn, name='return_tatal_value_order')
 ]

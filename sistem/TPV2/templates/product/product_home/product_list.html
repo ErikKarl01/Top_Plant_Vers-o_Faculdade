@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Produtos | Top Plant V2</title>
+    
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        
+        <div class="data-panel">
+            
+            <div class="panel-header">
+                <h2>Catálogo de Produtos</h2>
+            </div>
+
+            <div class="stock-filter">
+                <input 
+                    type="text" 
+                    id="filterCode" 
+                    class="form-control" 
+                    placeholder="Código">
+                
+                <input 
+                    type="text" 
+                    id="filterName" 
+                    class="form-control" 
+                    placeholder="Nome">
+                
+                <button 
+                    class="btn btn-positive" 
+                    onclick="filterProducts()">
+                    Filtrar
+                </button>
+                
+                <button 
+                    class="btn btn-cancel" 
+                    onclick="loadProducts()">
+                    Limpar
+                </button>
+            </div>
+
+            <div class="table-responsive scroll-table">
+                <table class="table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Medida</th>
+                            <th>Preço (R$)</th>
+                            <th>Descrição</th>
+                            <th>Licença</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding: 2rem;">
+                                Carregando...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+
+        <div class="stock-actions" style="margin-bottom: 2rem;">
+           <a href="{% url 'template_product_register' %}" class="btn btn-positive">Cadastrar Produto</a>
+            <button id="btnEdit" class="btn btn-positive" disabled onclick="goToEdit()">Modificar Produto</button>
+            <button id="btnDelete" class="btn btn-danger" disabled onclick="openDeleteModal()">Excluir Produto</button>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="securityModal">
+        <div class="modal-box">
+            <h3 id="modalTitle">Confirmação Necessária</h3>
+            <p id="modalDesc">Para confirmar, digite <strong>confirmar</strong> abaixo.</p>
+            <input 
+                type="text" 
+                id="confirmInput" 
+                class="form-control" 
+                style="text-align: center; font-weight: bold; width: 100%; margin-bottom: 1.5rem;" 
+                placeholder="Digite confirmar" 
+                autocomplete="off">
+            
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmAction" disabled>Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="{% static 'js/product_list.js' %}?v=1"></script>
+
+</body>
+</html>

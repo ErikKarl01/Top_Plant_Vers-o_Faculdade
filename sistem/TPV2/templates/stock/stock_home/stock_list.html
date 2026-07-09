@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gerenciar Estoque | Top Plant V2</title>
+
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container">
+
+    <div class="data-panel">
+
+        <div class="panel-header">
+
+            <h2>Gerenciamento de Estoque</h2>
+
+            <a href="{% url 'stock_operations_template' %}" class="btn btn-positive">Consulta de Operações</a>
+
+        </div>
+
+        <div class="two-columns">
+
+            <!-- ================================================= -->
+            <!-- HORTALIÇAS -->
+            <!-- ================================================= -->
+
+            <div class="data-panel">
+
+                <div class="panel-header">
+
+                    <h2>Hortaliças</h2>
+
+                </div>
+
+                <div class="stock-filter">
+
+                    <input
+                        id="filterCodeH"
+                        class="form-control"
+                        type="text"
+                        placeholder="Código">
+
+                    <input
+                        id="filterNameH"
+                        class="form-control"
+                        type="text"
+                        placeholder="Nome">
+
+                    <button
+                        class="btn btn-positive"
+                        onclick="filterStock('Hortaliças')">
+
+                        Filtrar
+
+                    </button>
+
+                    <button
+                        class="btn btn-cancel"
+                        onclick="loadStock('Hortaliças')">
+
+                        Limpar
+
+                    </button>
+
+                </div>
+
+                <div class="table-responsive scroll-table">
+
+                    <table class="table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Código</th>
+                                <th>Produto</th>
+                                <th>Licenciado</th>
+                                <th>Quantidade</th>
+                                <th>Ações</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="tableHort">
+
+                            <tr>
+
+                                <td colspan="5" style="text-align:center;">
+
+                                    Carregando...
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- ================================================= -->
+            <!-- ORNAMENTAIS -->
+            <!-- ================================================= -->
+
+            <div class="data-panel">
+
+                <div class="panel-header">
+
+                    <h2>Ornamentais</h2>
+
+                </div>
+
+                <div class="stock-filter">
+
+                    <input
+                        id="filterCodeO"
+                        class="form-control"
+                        type="text"
+                        placeholder="Código">
+
+                    <input
+                        id="filterNameO"
+                        class="form-control"
+                        type="text"
+                        placeholder="Nome">
+
+                    <button
+                        class="btn btn-positive"
+                        onclick="filterStock('Ornamentais')">
+
+                        Filtrar
+
+                    </button>
+
+                    <button
+                        class="btn btn-cancel"
+                        onclick="loadStock('Ornamentais')">
+
+                        Limpar
+
+                    </button>
+
+                </div>
+
+                <div class="table-responsive scroll-table">
+
+                    <table class="table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Código</th>
+                                <th>Produto</th>
+                                <th>Licenciado</th>
+                                <th>Quantidade</th>
+                                <th>Ações</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="tableOrn">
+
+                            <tr>
+
+                                <td colspan="5" style="text-align:center;">
+
+                                    Carregando...
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- MODAL -->
+<!-- ========================================================= -->
+
+<div class="modal-overlay" id="amountModal">
+
+    <div class="modal-box">
+
+        <h3 id="modalTitle">
+
+            Alterar Estoque
+
+        </h3>
+
+        <p id="modalDescription">
+
+            Informe a quantidade.
+
+        </p>
+
+        <input
+            id="amountInput"
+            class="form-control"
+            type="number"
+            min="1"
+            placeholder="Quantidade"
+            style="margin-bottom:1.5rem;text-align:center;">
+
+        <div class="stock-actions">
+
+            <button
+                class="btn btn-cancel"
+                onclick="closeModal()">
+
+                Cancelar
+
+            </button>
+
+            <button
+                id="confirmButton"
+                class="btn btn-positive">
+
+                Confirmar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div
+    id="toastContainer"
+    class="toast-container">
+
+</div>
+
+<script src="{% static 'js/stock_list.js' %}"></script>
+
+</body>
+
+</html>

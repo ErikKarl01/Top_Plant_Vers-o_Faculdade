@@ -4,6 +4,8 @@ from Stock.views import Controller as StockController
 controller = StockController()
 
 urlpatterns = [
+    path('', controller.home, name='stock_home'),
+    path('stock_operations_home_template/', controller.operationsHome, name='stock_operations_template'),
     #Testado
     path('addAmount/', controller.addAmount, name='addAmount'),
     #Testado

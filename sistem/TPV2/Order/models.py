@@ -65,6 +65,13 @@ class Snapshot(models.Model):
             return Snapshot.objects.filter(code=code_snapshot).first()
         return None
     
+    def returnSnapshotByProduct(self, code_product: str):
+        if not code_product:
+            return None
+        product = Product.objects.filter(code=code_product).first()
+        snap = Snapshot.objects.filter(product=product).first()
+        return snap
+    
     def listSnapshots(self):
         return list(Snapshot.objects.all())
     

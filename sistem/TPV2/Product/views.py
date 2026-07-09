@@ -1,12 +1,29 @@
 from django.http import JsonResponse
 from Product.service import Service
 from Product.dto import ProductDTO
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 import json
 
 
 class Controller():
     service = Service()
+    
+    def home(self, request):
+        return render(request, 'product/product_home/product_list.html')
+    
+    def login_view(self, request):
+        """Renderiza a tela de login (Página Inicial da raiz /)"""
+        return render(request, 'login/login.html')
+
+    def save_prod(self, request):
+        """Renderiza o formulário de cadastro de novos produtos"""
+        return render(request, 'product/register/product_register.html')
+
+    def product_edit_view(self, request):
+        """Renderiza o formulário de edição de produtos recebendo o código na URL"""
+        return render(request, 'product/edit/product_edit.html')
+    
     @csrf_exempt
     def saveProduct(self, request):
         if request.method == 'POST':

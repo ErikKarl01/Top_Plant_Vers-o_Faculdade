@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Top Plant V2</title>
+    
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    
+    <style>
+        /* Centralizando e limitando o tamanho do painel de login */
+        .login-container {
+            max-width: 700px;
+            margin: 5rem auto; /* Distância do topo */
+        }
+        
+        .logo-container {
+            
+            text-align: center;
+            margin: 5rem auto;
+        }
+        
+        .logo-container img {
+            max-width: 500px; /* Tamanho ajustável da logo */
+            height: auto;
+        }
+
+        /* Estilos específicos para a validação de erros no formulário */
+        .form-control.input-error {
+            border-color: var(--color-danger);
+            background-color: #FFFAFA;
+        }
+        .form-control.input-error:focus {
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+        }
+        .error-message {
+            color: var(--color-danger);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'navbar.html' %}
+
+    <div class="container login-container">
+        <div class="data-panel">
+            
+            <div class="logo-container">
+                <img src="static/img/logo_top_plant.png" alt="Logo Top Plant">
+            </div>
+
+            <div class="panel-header" style="justify-content: center; border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
+                <h2 style="color: var(--text-main); font-size: 1.3rem;">Acesso ao Sistema</h2>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                
+                <div class="form-group">
+                    <label class="form-label">Nome do Funcionário</label>
+                    <input type="text" id="loginName" class="form-control" placeholder="Digite seu nome" autocomplete="username">
+                    <span id="errName" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Digite sua senha" autocomplete="current-password">
+                    <span id="errPassword" class="error-message"></span>
+                </div>
+
+                <div class="stock-actions" style="margin-top: 2rem;">
+                    <button class="btn btn-positive" style="width: 100%; padding: 0.8rem; font-size: 1rem;" onclick="executeLogin()">Entrar</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="{% static 'js/login.js' %}"></script>
+
+</body>
+</html>

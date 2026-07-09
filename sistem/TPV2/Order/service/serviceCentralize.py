@@ -69,22 +69,22 @@ class ServiceCentralized:
         list_snaps_rest = []
         
         for snap in snaps:
-            dict_snaps_rest = {}
-            dict_snaps_rest['snap'] = snap
-            dict_snaps_rest['rest'] = price_target%snap.price
-            dict_snaps_rest['div_int'] = int(price_target/snap.price)
-            list_snaps_rest.append(dict_snaps_rest)
+            if snap.price == 0:
+                continue
+            touple_ = (snap, round(price_target%snap.price, 2), price_target//snap.price)
+            list_snaps_rest.append(touple_)
         
-        list_sort = sorted(dict_snaps_rest, key=lambda x: x['rest'])
+        list_sort = sorted(list_snaps_rest, key=lambda x: x[1], reverse=False)
         return_snaps = []
         
         for snap in list_sort:
             try:
                 dict_rreturn = {}
-                dict_rreturn['snap'] = self.c_snapshot.toDict(snap['snap'])
+                dict_rreturn['snap'] = self.c_snapshot.toDict(snap[0])
             except Exception as e:
                 return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500)
-            dict_rreturn['total_value'] = snap['div_int']*snap['snap'].price
+            dict_rreturn['total_value'] = snap[2]*snap[0].price
+            dict_rreturn['quantidade'] = int(snap[2])
             return_snaps.append(dict_rreturn)
         return self.response.sucessMens(mensage='', value=return_snaps)
           
@@ -99,8 +99,8 @@ class ServiceCentralized:
         list_items_order = []
         
         for item in items:
-            code_product_clean = cleanCode(item.product.code)
-            amount = item.amount
+            code_product_clean = cleanCode(item.get('code_product', ''))
+            amount = item.get('amount', 0)
             if self.stock_service.retusrItemAmount(code_product_clean) < amount:
                 return self.response.erroMens(menssage=Errors.INSULFFICIENT_STOCK, status=400)
             response_save_item = self.i_service.saveItem(code_order=order.code, code_product=code_product_clean, amount=amount)
@@ -167,9 +167,18 @@ class ServiceCentralized:
         return self.response.sucessMens(mensage=Success.ORDER_MODIFIED_SUCEFULD, value=dict_return)
     
     def totalValueReturn(self, items: list):
-        if not items or not all(item.product and item.amount for item in items):
-            return 
-        total = sum(item.product.price * item.amount for item in items)
+        if not items or not all(item.get('code_product') and item.get('amount') for item in items):
+            return self.response.erroMens(menssage='Erro na requisição, falta algummítem do pedido', status=400)
+        total = 0
+        for item in items:
+            response_ = self.snap_service.snapshotReturn(item.get('code_product'))
+            if not response_.sucess:
+                return response_
+            price_roduct = response_.value.price
+            try:
+                total+=float(item.get('amount')*price_roduct)
+            except Exception as e:
+                return self.response.erroMens(menssage=['Quantidade inválida detectada', str(e)], status=400)
         return self.response.sucessMens(mensage='Total do pedido:', value=total)
 
     def getOrderByCode(self, code_order: str):
