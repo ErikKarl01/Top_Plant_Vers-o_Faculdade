@@ -439,3 +439,83 @@ a {
     }
 
 }
+
+/* ========================================================================== */
+/* COMPONENTES DA TELA DE CLIENTES (ISOLADO PARA NÃO QUEBRAR OUTRAS TELAS)    */
+/* ========================================================================== */
+
+/* Nova classe de altura expandida para caber muito mais clientes em tela */
+.scroll-table-large {
+    max-height: 650px !important;
+    overflow-y: auto !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+}
+
+/* Reset Estrutural Absoluto contra quebras horizontais no escopo desta tabela */
+.scroll-table-large table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+.scroll-table-large tr {
+    display: table-row !important;
+}
+.scroll-table-large th, 
+.scroll-table-large td {
+    display: table-cell !important;
+    vertical-align: middle !important;
+}
+
+/* Cabeçalho do Cliente (Mantém o padrão Verde Musgo Escuro do sistema) */
+.header-client th {
+    background-color: var(--color-positive) !important;
+    color: var(--bg-panel) !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 10px 8px !important;
+}
+
+/* Cabeçalho do Endereço (Modificado para Grafite Chumbo para contraste visual absoluto) */
+.header-address th {
+    background-color: #3f4a56 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    padding: 8px 8px !important;
+}
+
+/* Linha de Dados do Cliente (Mais compacta) */
+.client-row td {
+    background-color: #ffffff !important;
+    color: var(--text-main) !important;
+    font-size: 0.90rem;
+    padding: 8px 8px !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* Linha de Dados do Endereço (Mais compacta e com tom cinza suave do sistema) */
+.address-row td {
+    background-color: #FAFAFA !important;
+    color: var(--text-muted) !important;
+    font-size: 0.85rem;
+    padding: 8px 8px !important;
+    border-bottom: 2px solid #cbd5e1 !important; /* Marca o fim de um bloco de cliente */
+}
+
+/* Hover Unificado para as linhas da tabela de clientes */
+.client-row:hover td, 
+.address-row:hover td {
+    background-color: var(--border-color) !important;
+}
+
+/* Estilo do par de linhas quando selecionado */
+.selected-row td {
+    background-color: #cbd5e1 !important;
+    color: #000000 !important;
+    font-weight: 600;
+}

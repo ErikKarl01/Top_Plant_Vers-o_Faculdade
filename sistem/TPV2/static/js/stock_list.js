@@ -28,109 +28,61 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Carrega estoque da categoria
 //====================================================
 
-async function loadStock(category){
-
-    try{
-
-        const response = await fetch(STOCK_URL,{
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-
-                category:category
-
+async function loadStock(category) {
+    try {
+        // Dispara duas requisições ao mesmo tempo: uma para True e outra para False
+        const [resLicensed, resNotLicensed] = await Promise.all([
+            fetch(STOCK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ category: category, products_licensed: true })
+            }),
+            fetch(STOCK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ category: category, products_licensed: false })
             })
+        ]);
 
-        });
+        const dataLicensed = await resLicensed.json();
+        const dataNotLicensed = await resNotLicensed.json();
 
-        const data = await response.json();
+        let combinedItems = [];
 
-        if(!data.sucess){
-
-            if(category==="Hortaliças"){
-
-                hortStock=[];
-
-                renderTable(
-                    hortStock,
-                    "tableHort"
-                );
-
-            }
-
-            else{
-
-                ornStock=[];
-
-                renderTable(
-                    ornStock,
-                    "tableOrn"
-                );
-
-            }
-
-            if(Array.isArray(data.mensage)){
-
-                data.mensage.forEach(msg=>{
-
-                    showToast(msg,"error");
-
-                });
-
-            }
-
-            else{
-
-                showToast(data.mensage,"error");
-
-            }
-
-            return;
-
+        // Se encontrou produtos licenciados, adiciona na nossa lista combinada
+        if (dataLicensed.sucess && dataLicensed.value && dataLicensed.value.items) {
+            combinedItems = combinedItems.concat(dataLicensed.value.items);
         }
 
-        const items = data.value.items || [];
-
-        if(category==="Hortaliças"){
-
-            hortStock = items;
-
-            renderTable(
-                hortStock,
-                "tableHort"
-            );
-
+        // Se encontrou produtos NÃO licenciados, adiciona na mesma lista
+        if (dataNotLicensed.sucess && dataNotLicensed.value && dataNotLicensed.value.items) {
+            combinedItems = combinedItems.concat(dataNotLicensed.value.items);
         }
 
-        else{
-
-            ornStock = items;
-
-            renderTable(
-                ornStock,
-                "tableOrn"
-            );
-
+        // Se os DOIS estoques não existirem, aí sim mostramos o erro original do back-end
+        if (!dataLicensed.sucess && !dataNotLicensed.sucess) {
+            const mensagensErro = dataLicensed.mensage || dataNotLicensed.mensage;
+            
+            if (Array.isArray(mensagensErro)) {
+                mensagensErro.forEach(msg => showToast(msg, "error"));
+            } else if (mensagensErro) {
+                showToast(mensagensErro, "error");
+            }
         }
 
-    }
+        // Agora salvamos a lista combinada na variável global certa e renderizamos
+        if (category === "Hortaliças") {
+            hortStock = combinedItems;
+            renderTable(hortStock, "tableHort");
+        } else {
+            ornStock = combinedItems;
+            renderTable(ornStock, "tableOrn");
+        }
 
-    catch(error){
-
+    } catch (error) {
         console.error(error);
-
-        showToast(
-            "Erro ao comunicar com o servidor.",
-            "error"
-        );
-
+        showToast("Erro ao comunicar com o servidor.", "error");
     }
-
 }
 
 //====================================================

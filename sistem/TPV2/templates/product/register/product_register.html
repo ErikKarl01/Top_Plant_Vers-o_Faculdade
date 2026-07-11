@@ -50,7 +50,11 @@
 
                 <div class="form-group">
                     <label class="form-label">Tipo</label>
-                    <input type="text" id="regType" class="form-control" placeholder="Ex: Hortaliça">
+                    <select id="regType" class="form-control">
+                        <option value="" disabled selected>Selecione um tipo...</option>
+                        <option value="Hortaliças">Hortaliças</option>
+                        <option value="Ornamentais">Ornamentais</option>
+                    </select>
                     <span id="errType" class="error-message"></span>
                 </div>
 

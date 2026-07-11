@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Modificar Endereço | Top Plant V2</title>
+
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+
+    <style>
+
+        .form-control.input-error{
+            border-color:var(--color-danger);
+            background:#FFFAFA;
+        }
+
+        .form-control.input-error:focus{
+            box-shadow:0 0 0 3px rgba(139,0,0,.10);
+        }
+
+        .error-message{
+            display:none;
+            margin-top:.3rem;
+            color:var(--color-danger);
+            font-size:.8rem;
+            font-weight:600;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container">
+
+    <div class="data-panel">
+
+        <div class="panel-header">
+            <h2>Modificar Endereço</h2>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    CEP
+                </label>
+
+                <input
+                    id="editCodeZone"
+                    type="text"
+                    class="form-control"
+                    placeholder="CEP">
+
+                <span
+                    id="errCodeZone"
+                    class="error-message">
+                </span>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Cidade
+                </label>
+
+                <input
+                    id="editCity"
+                    type="text"
+                    class="form-control"
+                    placeholder="Cidade">
+
+                <span
+                    id="errCity"
+                    class="error-message">
+                </span>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Bairro
+                </label>
+
+                <input
+                    id="editNeigB"
+                    type="text"
+                    class="form-control"
+                    placeholder="Bairro">
+
+                <span
+                    id="errNeigB"
+                    class="error-message">
+                </span>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Número
+                </label>
+
+                <input
+                    id="editNumber"
+                    type="text"
+                    class="form-control"
+                    placeholder="Número">
+
+                <span
+                    id="errNumber"
+                    class="error-message">
+                </span>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Tipo do Endereço
+                </label>
+
+                <select
+                    id="editType"
+                    class="form-control">
+
+                    <option value="COMERCIAL">Comercial</option>
+                    <option value="RESIDENCIAL">Residencial</option>
+
+                </select>
+
+                <span
+                    id="errType"
+                    class="error-message">
+                </span>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Tipo do Logradouro
+                </label>
+
+                <select
+                    id="editPeoplePlace"
+                    class="form-control">
+
+                    <option value="RUA">Rua</option>
+                    <option value="AVENIDA">Avenida</option>
+                    <option value="TRAVESSA">Travessa</option>
+                    <option value="ALAMEDA">Alameda</option>
+                    <option value="PRACA">Praça</option>
+                    <option value="ESTRADA">Estrada</option>
+                    <option value="RODOVIA">Rodovia</option>
+                    <option value="VIA">Via</option>
+                    <option value="LARGO">Largo</option>
+                    <option value="BECO">Beco</option>
+                    <option value="VIELA">Viela</option>
+                    <option value="SERVIDAO">Servidão</option>
+                    <option value="PASSAGEM">Passagem</option>
+                    <option value="QUADRA">Quadra</option>
+                    <option value="CONDOMINIO">Condomínio</option>
+                    <option value="CHACARA">Chácara</option>
+                    <option value="SITIO">Sítio</option>
+                    <option value="FAZENDA">Fazenda</option>
+                    <option value="LOTEAMENTO">Loteamento</option>
+                    <option value="RECANTO">Recanto</option>
+                    <option value="COLONIA">Colônia</option>
+                    <option value="PARQUE">Parque</option>
+                    <option value="CONJUNTO">Conjunto</option>
+
+                </select>
+
+                <span
+                    id="errPeoplePlace"
+                    class="error-message">
+                </span>
+
+            </div>
+
+        </div>
+
+        <div
+            class="stock-actions"
+            style="margin-top:2rem;justify-content:flex-end;">
+
+            <a
+                href="/client/"
+                class="btn btn-cancel">
+
+                Cancelar
+
+            </a>
+
+            <button
+                class="btn btn-positive"
+                onclick="updateAdress()">
+
+                Salvar Alterações
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div
+    id="toastContainer"
+    class="toast-container">
+
+</div>
+
+<script src="{% static 'js/adress_edit.js' %}"></script>
+
+</body>
+</html>

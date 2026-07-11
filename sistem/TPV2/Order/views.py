@@ -1,4 +1,5 @@
 import json
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Order.service.serviceCentralize import ServiceCentralized
@@ -7,6 +8,22 @@ from utils.converet.convertOrder import ConvertSnapshot
 
 class OrderController:
     service = ServiceCentralized()
+    
+    def templateOrderHome(self, request):
+        return render(request, "order/home.html")
+
+    def templateOrderRegister(self, request):
+        return render(request, "order/register.html")
+
+    def templateOrderConfirm(self, request):
+        return render(request, "order/confirm.html")
+
+    def templateOrderUpdate(self, request):
+        return render(request, "order/update.html")
+
+    def templateSnapshotHome(self, request):
+        return render(request, "order/snapshots.html")
+    
     @csrf_exempt
     def updateSnapshot(self, request):
         data = json.loads(request.body)

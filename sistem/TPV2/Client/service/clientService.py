@@ -42,16 +42,13 @@ class ClientService:
         return Response().sucessMens(mensage=Success.CLIENT_MODIFIED, value=client_model)
 
         
-    def clientModify(self, clientDTO, code_client: str) -> Response:
+    def clientModify(self, clientDTO: ClientDTO, code_client: str) -> Response:
         validate_client = self.validate.Client()
         result_validate = validate_client.forRegister(clientDTO)
         if result_validate != MENSAGE_SUCESS:
             return Response().erroMens(menssage=result_validate, status=400)
         if not self.c_model.clientExists(code_client=code_client):
             return Response().erroMens(Errors.CLIENT_NOT_FOUND, 404)
-        mensages = verifyUniqueCamps(contact=clientDTO.contact, email=clientDTO.email)
-        if mensages:
-            return Response().erroMens(menssage=mensages, status=409)
         try:
             client_model = self.convert_client.toModel(clientDTO)
         except Exception:

@@ -66,7 +66,23 @@ async function loadProductDetails(code) {
             const prod = data.value;
             document.getElementById('editCode').value = prod.code || code;
             document.getElementById('editName').value = prod.name || '';
-            document.getElementById('editType').value = prod.type || '';
+            // 1. Pega o valor do banco e força virar texto, sem espaços e tudo maiúsculo
+            const bancoType = String(prod.type || '').trim().toUpperCase();
+            
+            // 2. Rastreador para vermos a verdade nua e crua no F12
+            console.log("Tipo exato vindo do banco: [" + bancoType + "]");
+
+            // 3. Seleção por aproximação (ignora se tem Ç ou se falta o S)
+            const typeSelect = document.getElementById('editType');
+            
+            if (bancoType.includes('HORTALICA') || bancoType.includes('HORTALIÇA')) {
+                typeSelect.value = 'Hortaliças';
+            } else if (bancoType.includes('ORNAMENTA')) {
+                typeSelect.value = 'Ornamentais';
+            } else {
+                // Se vier vazio ou um lixo qualquer, volta pro "Selecione..."
+                typeSelect.value = ''; 
+            }
             document.getElementById('editMeasure').value = prod.measure || '';
             document.getElementById('editLicensed').value = prod.licensed ? 'true' : 'false';
             document.getElementById('editDesc').value = prod.description || '';

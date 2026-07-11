@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Confirmar Pedido | Top Plant V2</title>
+
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container">
+
+    <!-- ====================================== -->
+    <!-- DADOS DO PEDIDO -->
+    <!-- ====================================== -->
+
+    <div class="data-panel">
+
+        <div class="panel-header">
+
+            <h2>Confirmação do Pedido</h2>
+
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Cliente
+                </label>
+
+                <input
+                    id="clientName"
+                    class="form-control"
+                    type="text"
+                    readonly>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Código do Cliente
+                </label>
+
+                <input
+                    id="clientCode"
+                    class="form-control"
+                    type="text"
+                    readonly>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Valor Total
+                </label>
+
+                <input
+                    id="totalValue"
+                    class="form-control"
+                    type="text"
+                    readonly>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- ITENS -->
+    <!-- ====================================== -->
+
+    <div
+        class="data-panel"
+        style="margin-top:2rem;">
+
+        <div class="panel-header">
+
+            <h2>Itens do Pedido</h2>
+
+        </div>
+
+        <div class="table-responsive scroll-table">
+
+            <table class="table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Produto</th>
+                        <th>Código</th>
+                        <th>Quantidade</th>
+                        <th>Preço</th>
+                        <th>Desconto</th>
+                        <th>Total</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="itemsTableBody">
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            style="text-align:center;padding:2rem;">
+
+                            Carregando...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- BOTÕES -->
+    <!-- ====================================== -->
+
+    <div
+        class="stock-actions"
+        style="margin-top:2rem;justify-content:center;gap:1rem;flex-wrap:wrap;">
+
+        <button
+            class="btn btn-cancel"
+            onclick="goBack()">
+
+            Voltar
+
+        </button>
+
+        <button
+            class="btn btn-positive"
+            onclick="confirmOrder()">
+
+            Confirmar Pedido
+
+        </button>
+
+    </div>
+
+</div>
+
+<div
+    id="toastContainer"
+    class="toast-container">
+
+</div>
+
+<script src="{% static 'js/order_confirm.js' %}"></script>
+
+</body>
+</html>

@@ -2,9 +2,25 @@ from Client.dto import ClientDTO, AdressDTO
 from django.http import JsonResponse
 from Client.service.serviceCentralized import ServiceCentralized
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 import json
 
 class Controller:
+    def templateClient(self, request):
+        return render(request, "client/client_home/client_home.html")
+
+    def templateClientRegister(self, request):
+        return render(request, "client/register/client_register.html")
+
+    def templateClientEdit(self, request):
+        return render(request, "client/edit/client_edit.html")
+
+    def templateAdressRegister(self, request):
+        return render(request, "adress/register/adress_register.html")
+
+    def templateAdressEdit(self, request):
+        return render(request, "adress/edit/adress_edit.html")
+    
     service = ServiceCentralized()
     @csrf_exempt
     def clientSave(self, request):
