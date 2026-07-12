@@ -48,4 +48,5 @@ class Controller:
         res = self.response.operationsReturn(stock_code=stock_code,
                                              code_product=code_product,
                                              time_interval=time_interval).toDict()
+        print(res)
         return JsonResponse(res, status=res.get('status', 200), safe=False)

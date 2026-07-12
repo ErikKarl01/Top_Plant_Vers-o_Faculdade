@@ -160,45 +160,39 @@ class ServiceCentralized:
 
         return Response().sucessMens(mensage, list_return).toDict()
 
-    def modifyResponse(self, code_client: str, clientDTO: ClientDTO, adressDTO: AdressDTO):
+    def modifyClientResponse(self, code_client: str, clientDTO: ClientDTO):
         client_clean = cleanClient(clientDTO)
-        
-        # 1. Modifica o cliente PRIMEIRO (isso sempre tem que acontecer)
         response_client = self.c_service.clientModify(client_clean, code_client)
 
         if not response_client.sucess:
             return response_client.toDict()
         
         client_model = response_client.value
-        adress_dict = None # Inicia vazio por padrão
-        
-        # 2. Verifica se o cliente tem endereço para atualizar
-        has_adress = self.c_service.c_model.clientHasAdress(code_client=clientDTO.code)
-        
-        if has_adress:
-            adress_clean = cleanAdress(adressDTO)
-            response_adress = self.a_service.adressModify(client_model.code, adress_clean)
-
-            if not response_adress.sucess:
-                # Se falhou no endereço, retorna o erro do endereço
-                return response_adress.toDict()
-            
-            # Converte o endereço com sucesso
-            try:
-                adress_dict = self.convert_adress.toDict(adress=response_adress.value)
-            except Exception:
-                # Se der erro aqui, é erro de conversão
-                return self.response.erroMens("Erro de conversão", 500).toDict()
-
-        # 3. Converte o cliente
         try:
             client_dict = self.convert_client.toDict(client=client_model)
         except Exception:
             return self.response.erroMens("Erro de conversão", 500).toDict()
-
-        # 4. Junta tudo. Se não tinha endereço, adress_dict vai como None e não quebra nada!
-        response_client.value = {'client': client_dict, 'adress': adress_dict}
+        response_client.value = {'client': client_dict}
         return response_client.toDict()
+    
+    def modifyAdressResponse(self, code_client: str, adressDTO: AdressDTO):
+        adress_clean = cleanAdress(adressDTO)
+        response_adress = self.a_service.adressModify(code_client=code_client, adressDTO=adress_clean)
+        
+        if not response_adress.sucess:
+            return response_adress.toDict()
+        
+        adress_model = response_adress.value
+        
+        try:
+            adress_dict = self.convert_adress.toDict(adress_model)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.CONVERSION_ERROR, str(e)], status=500).toDict()
+        
+        response_adress.value = {'adress': adress_dict}
+        
+        return response_adress.toDict()
+            
 
 
     def deleteResponse(self, code_client: str):

@@ -94,5 +94,8 @@ class OrderController:
     def deleteOrder(self, request):
         data = json.loads(request.body)
         code_order = data.get('code_order', '')
-        res = self.service.deleteOrder(code_order=code_order).toDict()
+        try:
+            res = self.service.deleteOrder(code_order=code_order).toDict()
+        except Exception as e:
+            print(str(e))
         return JsonResponse(res, status=res.get('status', 200))

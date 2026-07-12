@@ -4,7 +4,7 @@ from .views import OrderController
 controller = OrderController()
 
 urlpatterns = [
-    # Rotas
+    #Templates
     path("", controller.templateOrderHome, name="template_order_home"),
     path("register/", controller.templateOrderRegister, name="template_order_register"),
     path("confirm/", controller.templateOrderConfirm, name="template_order_confirm"),

@@ -207,6 +207,19 @@ a {
     box-shadow: 0 0 0 3px rgba(30, 70, 32, 0.1);
 }
 
+.form-control.input-error {
+    border-color: var(--color-danger);
+    background-color: #FFFAFA;
+}
+
+.error-message {
+    display: none;
+    color: var(--color-danger);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.3rem;
+}
+
 /* ==================== TABELAS ==================== */
 .table-responsive {
     overflow-x: auto;
@@ -286,6 +299,18 @@ a {
 .btn-danger { background-color: var(--color-danger); }
 .btn-danger:hover:not(:disabled) { background-color: var(--color-danger-hover); }
 
+.btn-modal-cancel {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.btn-modal-cancel:hover { background-color: #5a6268; }
+
 /* ==================== BADGES (INDICADORES) ==================== */
 .badge {
     padding: 0.3rem 0.6rem;
@@ -301,28 +326,20 @@ a {
 .badge-warning { background-color: #FFF3E0; color: #EF6C00; } /* Não Licenciado / Pendente */
 .badge-danger { background-color: #FFEBEE; color: #C62828; }  /* Avaria / Erro */
 
-/* ==================== MODAIS ==================== */
+/* ==================== MODAIS (CORRIGIDO PARA O JS FUNCIONAR) ==================== */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    display: flex;
+    display: none; /* Alterado de flex para none. Agora o JS controla o display. */
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: var(--transition);
-}
-
-.modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
 }
 
 .modal-box {
     background: var(--bg-panel);
-    padding: 2rem;
+    padding: 2.5rem;
     border-radius: var(--radius);
     width: 90%;
     max-width: 450px;
@@ -365,7 +382,7 @@ a {
 }
 
 /* ========================================================================== */
-/* COMPONENTES DO ESTOQUE                                                     */
+/* COMPONENTES DO ESTOQUE (INTACTO)                                           */
 /* ========================================================================== */
 
 .two-columns{
@@ -420,31 +437,25 @@ a {
 }
 
 @media (max-width:768px){
-
     .stock-filter{
         flex-direction:column;
     }
-
     .stock-filter .form-control,
     .stock-filter .btn{
         width:100%;
     }
-
     .stock-actions{
         flex-direction:column;
     }
-
     .stock-actions .btn{
         width:100%;
     }
-
 }
 
 /* ========================================================================== */
-/* COMPONENTES DA TELA DE CLIENTES (ISOLADO PARA NÃO QUEBRAR OUTRAS TELAS)    */
+/* COMPONENTES DA TELA DE CLIENTES (INTACTO)                                  */
 /* ========================================================================== */
 
-/* Nova classe de altura expandida para caber muito mais clientes em tela */
 .scroll-table-large {
     max-height: 650px !important;
     overflow-y: auto !important;
@@ -452,7 +463,6 @@ a {
     border-radius: var(--radius) !important;
 }
 
-/* Reset Estrutural Absoluto contra quebras horizontais no escopo desta tabela */
 .scroll-table-large table {
     display: table !important;
     width: 100% !important;
@@ -467,7 +477,6 @@ a {
     vertical-align: middle !important;
 }
 
-/* Cabeçalho do Cliente (Mantém o padrão Verde Musgo Escuro do sistema) */
 .header-client th {
     background-color: var(--color-positive) !important;
     color: var(--bg-panel) !important;
@@ -478,7 +487,6 @@ a {
     padding: 10px 8px !important;
 }
 
-/* Cabeçalho do Endereço (Modificado para Grafite Chumbo para contraste visual absoluto) */
 .header-address th {
     background-color: #3f4a56 !important;
     color: #ffffff !important;
@@ -489,7 +497,6 @@ a {
     padding: 8px 8px !important;
 }
 
-/* Linha de Dados do Cliente (Mais compacta) */
 .client-row td {
     background-color: #ffffff !important;
     color: var(--text-main) !important;
@@ -498,24 +505,173 @@ a {
     border-top: 1px solid var(--border-color) !important;
 }
 
-/* Linha de Dados do Endereço (Mais compacta e com tom cinza suave do sistema) */
 .address-row td {
     background-color: #FAFAFA !important;
     color: var(--text-muted) !important;
     font-size: 0.85rem;
     padding: 8px 8px !important;
-    border-bottom: 2px solid #cbd5e1 !important; /* Marca o fim de um bloco de cliente */
+    border-bottom: 2px solid #cbd5e1 !important; 
 }
 
-/* Hover Unificado para as linhas da tabela de clientes */
 .client-row:hover td, 
 .address-row:hover td {
     background-color: var(--border-color) !important;
 }
 
-/* Estilo do par de linhas quando selecionado */
 .selected-row td {
     background-color: #cbd5e1 !important;
     color: #000000 !important;
     font-weight: 600;
+}
+/* =========================================
+   GERENCIAR PEDIDOS - FILTROS
+   ========================================= */
+.orders-filter-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 1.5rem; 
+    align-items: flex-end; 
+    background-color: #f4f7f5; 
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid #dcdcdc;
+}
+
+.orders-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1; 
+    min-width: 180px; 
+}
+
+.orders-filter-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.orders-filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* =========================================
+   GERENCIAR PEDIDOS - LISTAGEM E CARDS
+   ========================================= */
+.orders-scroll {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.order-card {
+    background-color: #ffffff;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+
+.order-card.selected {
+    border-color: #1a4f28; 
+    box-shadow: 0 0 10px rgba(26, 79, 40, 0.2);
+}
+
+.order-header-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.order-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-header-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #222;
+}
+
+.order-header-date, .order-header-client {
+    color: #555;
+    font-size: 0.95rem;
+}
+
+/* =========================================
+   GERENCIAR PEDIDOS - BADGES DE STATUS
+   ========================================= */
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.80rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pendente { background-color: #fff3cd; color: #856404; }
+.status-parcial { background-color: #cce5ff; color: #004085; }
+.status-finalizado { background-color: #d4edda; color: #155724; }
+.status-desconhecido { background-color: #e2e3e5; color: #383d41; }
+
+/* =========================================
+   GERENCIAR PEDIDOS - TABELA DE ITENS
+   ========================================= */
+.items-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #444;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    overflow: hidden; 
+}
+
+.items-table th, .items-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.items-table th {
+    background-color: #1a4f28; 
+    color: #ffffff; 
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 0.8rem 0.5rem;
+    border: none;
+}
+
+.items-table tr:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.items-table tr:hover {
+    background-color: #f1f8f3; 
+}
+
+.item-empty {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 1rem !important;
 }

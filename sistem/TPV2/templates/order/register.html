@@ -1,276 +1,116 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Registrar Pedido | Top Plant V2</title>
-
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
-
 </head>
-
 <body>
 
 {% include 'navbar.html' %}
 
 <div class="container">
-
     <div class="data-panel">
-
         <div class="panel-header">
             <h2>Registrar Pedido</h2>
         </div>
 
-        <!-- CLIENTE -->
-
         <div class="form-grid">
-
             <div class="form-group">
-
-                <label class="form-label">
-                    Código do Cliente
-                </label>
-
-                <input
-                    id="clientCode"
-                    class="form-control"
-                    type="text"
-                    placeholder="Código do cliente">
-
+                <label class="form-label">Código do Cliente</label>
+                <input id="clientCode" class="form-control" type="text" placeholder="Código do cliente">
             </div>
 
             <div class="form-group">
-
-                <label class="form-label">
-                    Nome do Cliente
-                </label>
-
-                <input
-                    id="clientName"
-                    class="form-control"
-                    type="text"
-                    readonly>
-
+                <label class="form-label">Nome do Cliente</label>
+                <input id="clientName" class="form-control" type="text" readonly>
             </div>
-
         </div>
-
     </div>
 
     <div class="data-panel" style="margin-top:2rem;">
-
         <div class="panel-header">
-
-            <h2>
-
-                Produtos Disponíveis
-
-            </h2>
-
+            <h2>Produtos Disponíveis</h2>
         </div>
 
-        <div
-            class="stock-filter"
-            style="margin-bottom:1rem;">
-
-            <input
-                id="targetPrice"
-                class="form-control"
-                type="number"
-                step="0.01"
-                placeholder="Meta de preço">
-
-            <button
-                class="btn btn-positive"
-                onclick="searchTarget()">
-
-                Buscar Meta
-
-            </button>
-
-            <button
-                class="btn btn-cancel"
-                onclick="clearTarget()">
-
-                Limpar
-
-            </button>
-
+        <div class="stock-filter" style="margin-bottom:1rem;">
+            <input id="targetPrice" class="form-control" type="number" step="0.01" placeholder="Meta de preço">
+            <button class="btn btn-positive" onclick="searchTarget()">Buscar Meta</button>
+            <button class="btn btn-cancel" onclick="clearTarget()">Limpar</button>
         </div>
 
         <div class="table-responsive scroll-table">
-
             <table class="table">
-
                 <thead>
-
                     <tr>
-
                         <th>Código</th>
                         <th>Produto</th>
                         <th>Preço</th>
                         <th>Desconto</th>
                         <th>Valor Final</th>
-
                     </tr>
-
                 </thead>
-
                 <tbody id="snapshotsTableBody">
-
                     <tr>
-
-                        <td
-                            colspan="5"
-                            style="text-align:center;padding:2rem;">
-
+                        <td colspan="5" style="text-align:center;padding:2rem;">
                             Carregando...
-
                         </td>
-
                     </tr>
-
                 </tbody>
-
             </table>
-
         </div>
 
-        <div
-            class="stock-actions"
-            style="justify-content:flex-end;margin-top:1rem;">
-
-            <input
-                id="itemAmount"
-                class="form-control"
-                type="number"
-                min="1"
-                value="1"
-                style="width:140px;"
-                placeholder="Quantidade">
-
-            <button
-                class="btn btn-positive"
-                onclick="addItem()">
-
-                Adicionar ao Pedido
-
-            </button>
-
+        <div class="stock-actions" style="justify-content:flex-end;margin-top:1rem;">
+            <input id="itemAmount" class="form-control" type="number" min="1" value="1" style="width:140px;" placeholder="Quantidade">
+            <button class="btn btn-positive" onclick="addItem()">Adicionar ao Pedido</button>
         </div>
-
     </div>
 
     <div class="data-panel" style="margin-top:2rem;">
-
         <div class="panel-header">
-
-            <h2>
-
-                Itens do Pedido
-
-            </h2>
-
+            <h2>Itens do Pedido</h2>
         </div>
 
         <div class="table-responsive scroll-table">
-
             <table class="table">
-
                 <thead>
-
                     <tr>
-
                         <th>Código</th>
                         <th>Produto</th>
                         <th>Quantidade</th>
                         <th>Preço</th>
                         <th>Desconto</th>
                         <th>Ações</th>
-
                     </tr>
-
                 </thead>
-
                 <tbody id="orderItemsTableBody">
-
                     <tr>
-
-                        <td
-                            colspan="6"
-                            style="text-align:center;padding:2rem;">
-
+                        <td colspan="6" style="text-align:center;padding:2rem;">
                             Nenhum item adicionado.
-
                         </td>
-
                     </tr>
-
                 </tbody>
-
             </table>
-
         </div>
 
-        <div
-            class="stock-actions"
-            style="justify-content:space-between;margin-top:1.5rem;">
-
+        <div class="stock-actions" style="justify-content:space-between;margin-top:1.5rem;">
             <div>
-
-                <strong>
-
-                    Total de Itens:
-
-                </strong>
-
-                <span id="totalItems">
-
-                    0
-
-                </span>
-
+                <strong>Total de Itens: </strong>
+                <span id="totalItems">0</span>
             </div>
-
-            <div
-                style="display:flex;gap:.8rem;">
-
-                <button
-                    class="btn btn-cancel"
-                    onclick="clearOrder()">
-
-                    Limpar Pedido
-
-                </button>
-
-                <button
-                    class="btn btn-positive"
-                    onclick="nextStep()">
-
-                    Continuar
-
-                </button>
-
+            <div style="display:flex;gap:.8rem;">
+                <button class="btn btn-cancel" onclick="clearOrder()">Limpar Pedido</button>
+                <button class="btn btn-positive" onclick="nextStep()">Continuar</button>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<div
-    id="toastContainer"
-    class="toast-container">
-
-</div>
+<div id="toastContainer" class="toast-container"></div>
 
 <script src="{% static 'js/order_register.js' %}"></script>
 
 </body>
-
 </html>

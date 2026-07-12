@@ -42,6 +42,8 @@ class AdressService:
             return Response().erroMens(menssage=validate_code, status=409)
         if not self.c_model.clientExists(code_client=code_client):
             return Response().erroMens(menssage=Errors.CLIENT_NOT_FOUND, status=404)
+        if not self.c_model.clientHasAdress(code_client=code_client):
+            return Response().erroMens(menssage='Cliente não possui um endereço cadastrado', status=404)
         if mens_validate != MENSAGE_SUCESS:
             return Response().erroMens(menssage=mens_validate, status=409)
         try:
@@ -49,10 +51,10 @@ class AdressService:
         except Exception:
             return Response().erroMens(menssage=Errors.CONVERSION_ERROR, status=500)
         try:
-            self.a_model.adressModify(adress=adress_model)
+            adress_ret = self.a_model.adressModify(adress=adress_model, code_client=code_client)
         except Exception:
-            return Response().erroMens(mensage=Errors.MODELS_ERROR, status=500)
-        return Response().sucessMens(mensage=Success.ADRESS_MODIFIED, value=adress_model)
+            return Response().erroMens(menssage=Errors.MODELS_ERROR, status=500)
+        return Response().sucessMens(mensage=Success.ADRESS_MODIFIED, value=adress_ret)
     
     
     def adressDelete(self, code_client: str) -> Response:

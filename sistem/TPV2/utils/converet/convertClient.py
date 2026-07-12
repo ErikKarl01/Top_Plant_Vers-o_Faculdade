@@ -62,7 +62,6 @@ class ConvertAdress:
 
     def toModel(self, dto: AdressDTO) -> Adress:
         return Adress(
-            client=None,
             code_zone=dto.code_zone,
             city=dto.city,
             people_place=dto.people_place,

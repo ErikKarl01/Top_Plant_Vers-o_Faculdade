@@ -148,9 +148,9 @@ function renderOperations(){
 
                 <td>${operation.stock_code}</td>
 
-                <td>${operation.product_code}</td>
+                <td>${operation.code_product}</td>
 
-                <td>${operation.product_name}</td>
+                <td>${operation.name_product}</td>
 
                 <td>${operation.type_operation}</td>
 

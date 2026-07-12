@@ -142,18 +142,15 @@ async function loadClient(code) {
 
 
 async function updateClient(event) {
-    console.log("PASSO 1: Botão clicado! Função iniciada.");
     
     if (event) {
         event.preventDefault(); 
     }
 
     try {
-        console.log("PASSO 2: Limpando erros da tela...");
         document.querySelectorAll('.error-message').forEach(el => { el.style.display = 'none'; });
         document.querySelectorAll('.form-control').forEach(el => { el.classList.remove('input-error'); });
 
-        console.log("PASSO 3: Buscando código original do cliente...");
         let safeOriginalCode = sessionStorage.getItem("editClientCode");
         
         // Verifica se a variável global existe antes de tentar acessá-la para não quebrar
@@ -167,7 +164,6 @@ async function updateClient(event) {
             return;
         }
 
-        console.log("PASSO 4: Montando os dados (Payload)...");
         const payload = {
             code_client: isNaN(safeOriginalCode) ? safeOriginalCode.trim() : Number(safeOriginalCode),
             client: {
@@ -182,20 +178,15 @@ async function updateClient(event) {
             adress: {}
         };
         console.log("Payload montado:", payload);
-
-        console.log("PASSO 5: Enviando requisição para o backend...");
-        const response = await fetch("../../modify/", {
+        const response = await fetch("../../modifyClient/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-
-        console.log("PASSO 6: Requisição enviada, aguardando resposta do backend...");
         const data = await response.json();
         console.log("Resposta do backend recebida:", data);
 
         if (data.sucess === true || data.sucess === "True" || data.sucess === "true") {
-            console.log("PASSO 7: Sucesso! Iniciando redirecionamento...");
             alert(data.mensage || "Cliente atualizado com sucesso!");
             
             sessionStorage.removeItem("editClientCode");
@@ -206,7 +197,6 @@ async function updateClient(event) {
             return; 
         }
 
-        console.log("PASSO 8: Backend retornou erros de validação.");
         const errors = data.mensage;
         if (errors && typeof errors === "object" && !Array.isArray(errors)) {
             const fieldsMap = {

@@ -164,14 +164,15 @@ class Adress(models.Model):
             return adress
         return None
     
-    def adressModify(self, adress: Adress, code_client: str='') -> Adress:
+    def adressModify(self, adress: Adress, code_client: str) -> Adress:
         if not adress or not code_client:
+            print("1")
             return None
         client = Client.objects.filter(code=code_client).first()
         adress_obj = Adress.objects.filter(client=client).first()
         if not client or not adress_obj:
+            print("2")
             return None
-        adress.client = client
         adress_obj.code_zone = adress.code_zone
         adress_obj.city = adress.city
         adress_obj.people_place = adress.people_place
@@ -179,6 +180,7 @@ class Adress(models.Model):
         adress_obj.number = adress.number
         adress_obj.type = adress.type
         adress_obj.save()
+        print("3")
         return adress_obj
     
     def adressDelete(self, code_client: str=''):

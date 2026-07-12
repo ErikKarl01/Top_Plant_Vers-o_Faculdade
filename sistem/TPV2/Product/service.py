@@ -37,10 +37,6 @@ class Service:
             return self.response.erroMens(menssage=Errors.PRODUCT_ALREADY_EXISTS, status=400)
         if self.p_model.nametAlreadyRegistered(product_clean.name):
             return self.response.erroMens(menssage=Errors.NAME_ALREADY_EXISTS, status=400)
-        if product_clean.type in PRODUCT_TYPE_CHOICES[0]:
-            product_clean.type = PRODUCT_TYPE_CHOICES[0][0]
-        else:
-            product_clean.type = PRODUCT_TYPE_CHOICES[1][0]
         try:
             product_model = self.convert.toModel(product_clean)
         except Exception as e:

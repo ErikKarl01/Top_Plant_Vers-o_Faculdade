@@ -118,7 +118,6 @@ class Service:
         return self.response.sucessMens(mensage=self.sucess.STOCK_ITEM_UPDATED, value=None)
 
     def stockReturnForCategory(self, category: str, products_licensed: bool):
-        print(f"Category: {category}, Products Licensed: {products_licensed}")
         erro_mensages = []
         if not categoryProductValidate(category):
             erro_mensages.append(self.errors.INVALID_CATEGORY)
