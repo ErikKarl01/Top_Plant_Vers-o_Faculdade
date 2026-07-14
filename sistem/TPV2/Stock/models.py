@@ -114,7 +114,6 @@ class StockItem(models.Model):
     def stockItemsList(self, stock_code: str=''):
         if stock_code:
             return StockItem.objects.filter(stock__code=stock_code)
-        return None
     
 
 class Operations(models.Model):

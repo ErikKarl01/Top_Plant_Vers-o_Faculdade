@@ -6,42 +6,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Pedido | Top Plant V2</title>
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <style>
+        /* Estilos locais complementares para o Modal de Resumo */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* Controlado via JS */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal-body {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+        /* Destaque visual leve para tabelas extras */
+        .target-panel {
+            background-color: #f8faf9;
+            border-left: 4px solid #1a4f28;
+        }
+    </style>
 </head>
 <body>
 
 {% include 'navbar.html' %}
 
 <div class="container">
+    
+    <div style="margin-bottom: 1.5rem;">
+        <button class="btn btn-cancel" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i> Voltar
+        </button>
+    </div>
+
     <div class="data-panel">
         <div class="panel-header">
-            <h2>Registrar Pedido</h2>
+            <h2>Dados do Cliente</h2>
         </div>
 
-        <div class="form-grid">
+        <div class="form-grid" style="margin-bottom: 1.5rem;">
             <div class="form-group">
-                <label class="form-label">Código do Cliente</label>
-                <input id="clientCode" class="form-control" type="text" placeholder="Código do cliente">
+                <label class="form-label">Buscar Código do Cliente</label>
+                <input id="clientCode" class="form-control" type="text" placeholder="Digite o código e pressione Enter">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Nome do Cliente</label>
-                <input id="clientName" class="form-control" type="text" readonly>
+                <label class="form-label">Nome do Cliente Vinculado</label>
+                <input id="clientName" class="form-control" type="text" readonly placeholder="Nenhum cliente selecionado">
             </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #555;">Selecione o Cliente na Lista Abaixo:</h3>
+        <div class="table-responsive scroll-table" style="max-height: 180px;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome do Cliente</th>
+                        <th>Documento (CPF/CNPJ)</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <tr>
+                        <td colspan="3" style="text-align:center;padding:1.5rem;">
+                            Carregando clientes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <div class="data-panel" style="margin-top:2rem;">
         <div class="panel-header">
-            <h2>Produtos Disponíveis</h2>
+            <h2>Produtos Disponíveis (Snapshots)</h2>
         </div>
 
-        <div class="stock-filter" style="margin-bottom:1rem;">
-            <input id="targetPrice" class="form-control" type="number" step="0.01" placeholder="Meta de preço">
-            <button class="btn btn-positive" onclick="searchTarget()">Buscar Meta</button>
-            <button class="btn btn-cancel" onclick="clearTarget()">Limpar</button>
-        </div>
-
-        <div class="table-responsive scroll-table">
+        <div class="table-responsive scroll-table" style="max-height: 250px; margin-bottom: 1.5rem;">
             <table class="table">
                 <thead>
                     <tr>
@@ -50,20 +114,54 @@
                         <th>Preço</th>
                         <th>Desconto</th>
                         <th>Valor Final</th>
+                        <th>Estoque Disponível</th>
                     </tr>
                 </thead>
                 <tbody id="snapshotsTableBody">
                     <tr>
-                        <td colspan="5" style="text-align:center;padding:2rem;">
-                            Carregando...
+                        <td colspan="6" style="text-align:center;padding:2rem;">
+                            Carregando produtos...
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="stock-actions" style="justify-content:flex-end;margin-top:1rem;">
-            <input id="itemAmount" class="form-control" type="number" min="1" value="1" style="width:140px;" placeholder="Quantidade">
+        <div class="data-panel target-panel" style="margin-top: 1rem; padding: 1.5rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; font-size: 1.1rem; color: #1a4f28;"><i class="fa-solid fa-calculator"></i> Sugestões de Ajuste (Meta de Preço)</h3>
+            <div class="stock-filter" style="margin-bottom:1rem; display: flex; gap: 0.5rem;">
+                <input id="targetPrice" class="form-control" type="number" step="0.01" placeholder="Insira o valor restante para fechar a compra">
+                <button class="btn btn-positive" onclick="searchTarget()">Ordenar Meta</button>
+                <button class="btn btn-cancel" onclick="clearTarget()">Limpar</button>
+            </div>
+
+            <div class="table-responsive scroll-table" style="max-height: 200px;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Desconto</th>
+                            <th>Valor Final</th>
+                            <th>Qtd. Sugerida</th>
+                            <th>Total Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="targetSnapshotsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:1.5rem; color: #777; font-style: italic;">
+                                Insira uma meta de preço acima e clique em Ordenar para liberar as sugestões.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="stock-actions" style="justify-content:flex-end; margin-top:1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+            <label class="form-label" style="margin: 0;">Quantidade do Item Selecionado:</label>
+            <input id="itemAmount" class="form-control" type="number" min="1" value="1" style="width:120px;" placeholder="Quantidade">
             <button class="btn btn-positive" onclick="addItem()">Adicionar ao Pedido</button>
         </div>
     </div>
@@ -95,15 +193,34 @@
             </table>
         </div>
 
-        <div class="stock-actions" style="justify-content:space-between;margin-top:1.5rem;">
+        <div class="stock-actions" style="justify-content:space-between;margin-top:1.5rem; display: flex; align-items: center;">
             <div>
-                <strong>Total de Itens: </strong>
+                <strong>Total de Itens Diferentes: </strong>
                 <span id="totalItems">0</span>
             </div>
-            <div style="display:flex;gap:.8rem;">
+            <div style="display:flex; gap:.8rem;">
                 <button class="btn btn-cancel" onclick="clearOrder()">Limpar Pedido</button>
-                <button class="btn btn-positive" onclick="nextStep()">Continuar</button>
+                <button class="btn btn-positive" onclick="nextStep()">Fechar Pedido</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="confirmationModal" class="modal-overlay">
+    <div class="modal-body">
+        <div class="modal-header">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Resumo de Conferência do Pedido
+        </div>
+        
+        <div id="modalSummaryContainer"></div>
+        
+        <div style="text-align: right; margin-top: 1.5rem; font-size: 1.2rem; font-weight: bold; color: #1a4f28;">
+            Valor Total do Pedido (Oficial): <span id="modalTotalValue">R$ 0,00</span>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">Voltar e Ajustar</button>
+            <button class="btn btn-positive" onclick="confirmAndSaveOrder()">Confirmar e Gravar no Banco</button>
         </div>
     </div>
 </div>

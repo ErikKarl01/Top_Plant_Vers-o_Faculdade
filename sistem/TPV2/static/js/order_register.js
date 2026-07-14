@@ -1,76 +1,181 @@
 let snapshots = [];
+let targetSnapshots = []; 
 let selectedSnapshot = null;
 let orderItems = [];
+let clients = [];
 let selectedClient = null;
 
 const snapshotsTable = document.getElementById("snapshotsTableBody");
+const targetSnapshotsTable = document.getElementById("targetSnapshotsTableBody"); 
 const orderTable = document.getElementById("orderItemsTableBody");
+const clientsTable = document.getElementById("clientsTableBody"); 
+
+const confirmationModal = document.getElementById("confirmationModal");
+const modalSummaryContainer = document.getElementById("modalSummaryContainer");
+const modalTotalValueElem = document.getElementById("modalTotalValue");
 
 window.onload = () => {
     loadSnapshots();
+    loadClients();
 };
 
+/* ==========================================================================
+   SNAPSHOTS LOGIC (TABELA PADRÃO COM ESTOQUE)
+   ========================================================================= */
+
+// Bate na sua rota individual e retorna 0 se o produto não tiver estoque (404/500)
+// Bate na sua rota via POST mandando o código no corpo (body) da requisição
+async function fetchStock(product_code) {
+    try {
+        const response = await fetch("/stock/itemAmountReturn/", { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code_product: product_code })
+        });
+        
+        const data = await response.json();
+
+        // Se o status for de erro (como o 404) ou sucess falso (produto sem estoque), retorna 0
+        if (!response.ok || data.sucess === false) {
+            return 0;
+        }
+
+        // Sucesso: retorna a quantidade real
+        return Number(data.value || 0);
+    } catch (error) {
+        // Se a rede falhar, garante que a tela não quebre e exibe 0
+        return 0;
+    }
+}
+
+// Espera o estoque de todos os produtos carregar antes de exibir na tabela
 async function loadSnapshots() {
     selectedSnapshot = null;
 
-    snapshotsTable.innerHTML = `
-        <tr>
-            <td colspan="5" style="text-align:center;padding:2rem;">
-                Carregando produtos...
-            </td>
-        </tr>
-    `;
+    if (snapshotsTable) {
+        snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Carregando produtos e estoques...</td></tr>`;
+    }
 
     try {
-        const response = await fetch("/snapshot/list/", {
-            method: "GET"
-        });
-
+        const response = await fetch("/order/snapshot/list/", { method: "GET" });
         const data = await response.json();
 
         if (!data.sucess) {
-            snapshotsTable.innerHTML = `
-                <tr>
-                    <td colspan="5" style="text-align:center;padding:2rem;">
-                        Nenhum snapshot encontrado.
-                    </td>
-                </tr>
-            `;
+            if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum snapshot encontrado.</td></tr>`;
             showToast(data.mensage, false);
             return;
         }
 
-        snapshots = data.value;
-        renderSnapshots(snapshots);
+        let tempSnapshots = data.value;
 
+        // Dispara as requisições de estoque para todos os produtos simultaneamente
+        const stockPromises = tempSnapshots.map(async (snapshot) => {
+            snapshot.stock_amount = await fetchStock(snapshot.product_code);
+            return snapshot;
+        });
+
+        // Aguarda todas as respostas (seja a quantidade real ou o 0 do fallback)
+        snapshots = await Promise.all(stockPromises);
+        
+        // Renderiza a tabela com a trava de segurança pronta para agir
+        renderSnapshots(snapshots);
     } catch (error) {
         console.error(error);
-        snapshotsTable.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;padding:2rem;">
-                    Erro ao carregar snapshots.
-                </td>
-            </tr>
-        `;
+        if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Erro ao carregar snapshots.</td></tr>`;
         showToast("Erro interno ao carregar produtos.", false);
     }
 }
 
 function renderSnapshots(list) {
+    if (!snapshotsTable) return;
     snapshotsTable.innerHTML = "";
 
     if (!list || list.length === 0) {
-        snapshotsTable.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;padding:2rem;">
-                    Nenhum produto encontrado.
-                </td>
-            </tr>
-        `;
+        snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
     list.forEach(snapshot => {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+
+        const price = Number(snapshot.price || 0);
+        const discount = Number(snapshot.discount || 0);
+        const finalPrice = price - discount;
+        const stock = Number(snapshot.stock_amount || 0); // Pegando o estoque do backend
+
+        tr.innerHTML = `
+            <td>${snapshot.product_code || "-"}</td>
+            <td>${snapshot.product_code_name || "Sem Nome"}</td>
+            <td>R$ ${price.toFixed(2)}</td>
+            <td>R$ ${discount.toFixed(2)}</td>
+            <td>R$ ${finalPrice.toFixed(2)}</td>
+            <td><strong>${stock}</strong></td> `;
+
+        tr.onclick = () => {
+            document.querySelectorAll("#snapshotsTableBody tr, #targetSnapshotsTableBody tr").forEach(row => row.classList.remove("selected-row"));
+            tr.classList.add("selected-row");
+            selectedSnapshot = snapshot;
+        };
+
+        snapshotsTable.appendChild(tr);
+    });
+}
+
+/* ==========================================================================
+   TARGET OPTIMIZATION LOGIC (TABELA EXTRA DE META)
+   ========================================================================= */
+async function searchTarget() {
+    const targetPriceInput = document.getElementById("targetPrice").value;
+    const target = parseFloat(targetPriceInput);
+
+    if (isNaN(target) || target <= 0) {
+        clearTarget();
+        return;
+    }
+
+    if (targetSnapshotsTable) {
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Calculando melhor combinação...</td></tr>`;
+    }
+
+    try {
+        const response = await fetch("/order/snapshot/ordenated_by_target/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ price_target: target })
+        });
+
+        const data = await response.json();
+
+        if (!data.sucess) {
+            if (targetSnapshotsTable) targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhum resultado encontrado.</td></tr>`;
+            showToast(data.mensage, false);
+            return;
+        }
+
+        targetSnapshots = data.value;
+        renderTargetSnapshots(targetSnapshots);
+        showToast("Itens listados em ordem de melhor preferência para fechar o valor do pedido.", true);
+    } catch (error) {
+        console.error(error);
+        showToast("Erro ao calcular meta.", false);
+    }
+}
+
+function renderTargetSnapshots(list) {
+    if (!targetSnapshotsTable) return;
+    targetSnapshotsTable.innerHTML = "";
+
+    if (!list || list.length === 0) {
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Insira um valor alvo e clique em Ordenar.</td></tr>`;
+        return;
+    }
+
+    list.forEach(item => {
+        const snapshot = item.snap;
+        const qtdSugerida = item.quantidade;
+        const totalAcumulado = item.total_value;
+
         const tr = document.createElement("tr");
         tr.style.cursor = "pointer";
 
@@ -84,89 +189,157 @@ function renderSnapshots(list) {
             <td>R$ ${price.toFixed(2)}</td>
             <td>R$ ${discount.toFixed(2)}</td>
             <td>R$ ${finalPrice.toFixed(2)}</td>
+            <td><strong>${qtdSugerida}x</strong></td>
+            <td>R$ ${Number(totalAcumulado).toFixed(2)}</td>
         `;
 
         tr.onclick = () => {
-            document
-                .querySelectorAll("#snapshotsTableBody tr")
-                .forEach(row => row.classList.remove("selected-row"));
-
+            document.querySelectorAll("#snapshotsTableBody tr, #targetSnapshotsTableBody tr").forEach(row => row.classList.remove("selected-row"));
             tr.classList.add("selected-row");
             selectedSnapshot = snapshot;
         };
 
-        snapshotsTable.appendChild(tr);
+        targetSnapshotsTable.appendChild(tr);
     });
 }
 
-async function searchTarget() {
-    const targetPriceInput = document.getElementById("targetPrice").value;
-    const target = parseFloat(targetPriceInput);
+function clearTarget() {
+    document.getElementById("targetPrice").value = "";
+    targetSnapshots = [];
+    if (targetSnapshotsTable) {
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.5rem;">Insira uma meta de preço para liberar as sugestões.</td></tr>`;
+    }
+    loadSnapshots();
+}
 
-    if (isNaN(target) || target <= 0) {
-        loadSnapshots();
+/* ==========================================================================
+   CLIENTS LOGIC (Listagem e Travamento de Seleção)
+   ========================================================================= */
+async function loadClients() {
+    if (!clientsTable) return;
+    clientsTable.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;">Carregando clientes...</td></tr>`;
+
+    try {
+        const response = await fetch("/client/list/", { method: "GET" });
+        const data = await response.json();
+
+        if (!data.sucess) {
+            clientsTable.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;">Nenhum cliente encontrado.</td></tr>`;
+            return;
+        }
+
+        clients = data.value;
+        renderClients(clients);
+    } catch (error) {
+        console.error(error);
+        clientsTable.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;">Erro ao carregar clientes.</td></tr>`;
+        showToast("Erro interno ao carregar clientes.", false);
+    }
+}
+
+function renderClients(list) {
+    if (!clientsTable) return;
+    clientsTable.innerHTML = "";
+
+    if (!list || list.length === 0) {
+        clientsTable.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;">Nenhum cliente disponível.</td></tr>`;
         return;
     }
 
-    snapshotsTable.innerHTML = `
-        <tr>
-            <td colspan="5" style="text-align:center;padding:2rem;">
-                Calculando melhor combinação...
-            </td>
-        </tr>
-    `;
+    list.forEach(item => {
+        const client = item.client ? item.client : item; 
+
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+
+        if (selectedClient && selectedClient.code === client.code) {
+            tr.classList.add("selected-row");
+        } else if (selectedClient) {
+            tr.style.opacity = "0.5";
+            tr.style.cursor = "not-allowed";
+        }
+
+        tr.innerHTML = `
+            <td>${client.code || "-"}</td>
+            <td>${client.name || "Sem Nome"}</td>
+            <td>${client.doc || "-"}</td>
+        `;
+
+        tr.onclick = () => {
+            if (selectedClient && selectedClient.code !== client.code) {
+                showToast("Um cliente já foi selecionado. Desmarque o atual para escolher outro.", false);
+                return;
+            }
+
+            if (selectedClient && selectedClient.code === client.code) {
+                selectedClient = null;
+                if (document.getElementById("clientName")) document.getElementById("clientName").value = "";
+                if (document.getElementById("clientCode")) document.getElementById("clientCode").value = "";
+                renderClients(clients);
+                return;
+            }
+
+            selectedClient = client;
+            if (document.getElementById("clientName")) document.getElementById("clientName").value = selectedClient.name;
+            if (document.getElementById("clientCode")) document.getElementById("clientCode").value = selectedClient.code;
+            
+            renderClients(clients);
+            showToast(`Cliente ${client.name} vinculado ao pedido.`, true);
+        };
+
+        clientsTable.appendChild(tr);
+    });
+}
+
+async function searchClient() {
+    const code = document.getElementById("clientCode").value.trim();
+
+    if (!code) {
+        selectedClient = null;
+        document.getElementById("clientName").value = "";
+        renderClients(clients);
+        return;
+    }
 
     try {
-        const response = await fetch("/snapshot/ordenated_by_target/", {
+        const response = await fetch("/client/search/", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                price_target: target
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code_client: code, name: "", doc: "" })
         });
 
         const data = await response.json();
 
         if (!data.sucess) {
-            snapshotsTable.innerHTML = `
-                <tr>
-                    <td colspan="5" style="text-align:center;padding:2rem;">
-                        Nenhum resultado encontrado.
-                    </td>
-                </tr>
-            `;
+            selectedClient = null;
+            document.getElementById("clientName").value = "";
+            renderClients(clients);
             showToast(data.mensage, false);
             return;
         }
 
-        snapshots = data.value;
-        renderSnapshots(snapshots);
-
+        const clientResult = data.value.client ? data.value.client : data.value;
+        selectedClient = clientResult;
+        
+        document.getElementById("clientName").value = selectedClient.name;
+        renderClients(clients);
     } catch (error) {
         console.error(error);
-        showToast("Erro ao calcular meta.", false);
+        showToast("Erro ao localizar cliente.", false);
     }
 }
 
-function clearTarget() {
-    document.getElementById("targetPrice").value = "";
-    loadSnapshots();
-}
-
+/* ==========================================================================
+   ORDER LOGIC
+   ========================================================================= */
 function renderOrderItems() {
+    if (!orderTable) return;
     orderTable.innerHTML = "";
 
     if (orderItems.length === 0) {
-        orderTable.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align:center;padding:2rem;">
-                    Nenhum item adicionado.
-                </td>
-            </tr>
-        `;
-        document.getElementById("totalItems").innerText = "0";
+        orderTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum item adicionado.</td></tr>`;
+        const totalElem = document.getElementById("totalItems");
+        if(totalElem) totalElem.innerText = "0";
         return;
     }
 
@@ -180,33 +353,42 @@ function renderOrderItems() {
             <td>R$ ${Number(item.price).toFixed(2)}</td>
             <td>R$ ${Number(item.discount).toFixed(2)}</td>
             <td>
-                <button class="btn btn-danger" style="padding:.3rem .7rem;" onclick="removeItem(${index})">
-                    Remover
-                </button>
+                <button class="btn btn-danger" style="padding:.3rem .7rem;" onclick="removeItem(${index})">Remover</button>
             </td>
         `;
 
         orderTable.appendChild(tr);
     });
 
-    document.getElementById("totalItems").innerText = orderItems.length;
+    const totalElem = document.getElementById("totalItems");
+    if(totalElem) totalElem.innerText = orderItems.length;
 }
 
 function addItem() {
     if (!selectedSnapshot) {
-        showToast("Selecione um produto.", false);
+        showToast("Selecione um produto de uma das tabelas de listagem.", false);
         return;
     }
 
     const amountInput = document.getElementById("itemAmount").value;
     const amount = parseInt(amountInput);
+    const stockAvailable = Number(selectedSnapshot.stock_amount || 0); // Busca o estoque real
 
     if (isNaN(amount) || amount <= 0) {
         showToast("Quantidade inválida.", false);
         return;
     }
 
+    // Calcula total que o usuário quer levar contando o que já tem na sacola
     const exists = orderItems.find(item => item.product_code === selectedSnapshot.product_code);
+    const currentAmountInCart = exists ? exists.amount : 0;
+    const totalAttempted = currentAmountInCart + amount;
+
+    // A TRAVA DE SEGURANÇA QUE COMBINAMOS:
+    if (totalAttempted > stockAvailable) {
+        showToast(`Estoque insuficiente! Você tentou adicionar ${totalAttempted}, mas só temos ${stockAvailable} unid. de ${selectedSnapshot.product_code_name}.`, false);
+        return;
+    }
 
     if (exists) {
         exists.amount += amount;
@@ -221,7 +403,7 @@ function addItem() {
     }
 
     renderOrderItems();
-    document.getElementById("itemAmount").value = "1"; // Reseta para 1 em vez de limpar tudo
+    document.getElementById("itemAmount").value = "1";
 }
 
 function removeItem(index) {
@@ -229,58 +411,12 @@ function removeItem(index) {
     renderOrderItems();
 }
 
-function changeAmount(index, amount) {
-    const parsedAmount = parseInt(amount);
-
-    if (isNaN(parsedAmount) || parsedAmount <= 0) return;
-
-    orderItems[index].amount = parsedAmount;
-    renderOrderItems();
-}
-
-async function searchClient() {
-    const code = document.getElementById("clientCode").value.trim();
-
-    if (!code) {
-        selectedClient = null;
-        document.getElementById("clientName").value = "";
-        return;
-    }
-
-    try {
-        const response = await fetch("/client/search/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                code_client: code,
-                name: "",
-                doc: ""
-            })
-        });
-
-        const data = await response.json();
-
-        if (!data.sucess) {
-            selectedClient = null;
-            document.getElementById("clientName").value = "";
-            showToast(data.mensage, false);
-            return;
-        }
-
-        selectedClient = data.value.client;
-        document.getElementById("clientName").value = selectedClient.name;
-
-    } catch (error) {
-        console.error(error);
-        showToast("Erro ao localizar cliente.", false);
-    }
-}
-
-function nextStep() {
+/* ==========================================================================
+   MODAL DE CONFIRMAÇÃO & ENDPOINTS DE CÁLCULO / SALVAMENTO
+   ========================================================================= */
+async function nextStep() {
     if (!selectedClient) {
-        showToast("Selecione um cliente válido.", false);
+        showToast("Selecione um cliente válido na lista acima.", false);
         return;
     }
 
@@ -289,15 +425,117 @@ function nextStep() {
         return;
     }
 
-    sessionStorage.setItem(
-        "newOrder",
-        JSON.stringify({
-            client: selectedClient,
-            items: orderItems
-        })
-    );
+    const backendItemsPayload = orderItems.map(item => ({
+        code_product: item.product_code,
+        amount: item.amount
+    }));
 
-    window.location.href = "/confirm/"; // Adicionado a barra aqui também
+    try {
+        const response = await fetch("/order/total_order/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: backendItemsPayload })
+        });
+
+        const data = await response.json();
+
+        if (!data.sucess) {
+            showToast(data.mensage, false);
+            return;
+        }
+
+        buildOrderSummaryModal(data.value);
+    } catch (error) {
+        console.error(error);
+        showToast("Erro ao processar cálculo totalizador no servidor.", false);
+    }
+}
+
+function buildOrderSummaryModal(totalBackendValue) {
+    if (!modalSummaryContainer || !confirmationModal) return;
+
+    modalSummaryContainer.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <strong>Cliente:</strong> ${selectedClient.name} (${selectedClient.code})<br>
+            <strong>Documento:</strong> ${selectedClient.doc || "-"}
+        </div>
+        <hr style="border:0; border-top:1px solid #eee; margin:1rem 0;">
+        <div style="max-height: 200px; overflow-y: auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #eee; text-align:left;">
+                        <th style="padding: 0.5rem 0;">Cód.</th>
+                        <th>Produto</th>
+                        <th>Qtd.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orderItems.map(item => `
+                        <tr style="border-bottom:1px solid #f9f9f9;">
+                            <td style="padding: 0.5rem 0;">${item.product_code}</td>
+                            <td>${item.product_name}</td>
+                            <td><strong>${item.amount}x</strong></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    if (modalTotalValueElem) {
+        modalTotalValueElem.innerText = `R$ ${Number(totalBackendValue).toFixed(2)}`;
+    }
+
+    confirmationModal.style.display = "flex";
+}
+
+function closeModal() {
+    if (confirmationModal) confirmationModal.style.display = "none";
+}
+
+async function confirmAndSaveOrder() {
+    closeModal();
+
+    const backendItemsPayload = orderItems.map(item => ({
+        code_product: item.product_code,
+        amount: item.amount
+    }));
+
+    const orderDataPayload = {
+        code_client: selectedClient.code,
+        items: backendItemsPayload
+    };
+
+    console.log("🚀 PAYLOAD INDO PRO BACK: ", JSON.stringify(orderDataPayload, null, 2));
+
+    try {
+        const response = await fetch("/order/order/create/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderDataPayload)
+        });
+
+        const data = await response.json();
+        console.log("🛑 RESPOSTA DO BACKEND: ", data);
+
+        // A CORREÇÃO DE VALIDAÇÃO BLINDADA: Captura erro de status ou falha lógica (menssage/mensage/message)
+        if (data.sucess === false || !response.ok) {
+            const errorMsg = data.menssage || data.mensage || data.message || "Erro na validação do pedido.";
+            showToast(errorMsg, false);
+            return;
+        }
+
+        showToast("Pedido salvo com sucesso no banco de dados!", true);
+        sessionStorage.setItem("newOrder", JSON.stringify(orderDataPayload));
+        
+        setTimeout(() => {
+            clearOrder(); 
+        }, 1500);
+
+    } catch (error) {
+        console.error("ERRO NO FETCH: ", error);
+        showToast("Erro interno ao tentar salvar o pedido. Verifique o console.", false);
+    }
 }
 
 function clearOrder() {
@@ -305,36 +543,55 @@ function clearOrder() {
     selectedClient = null;
     orderItems = [];
 
-    document.getElementById("clientCode").value = "";
-    document.getElementById("clientName").value = "";
-    document.getElementById("itemAmount").value = "1";
-    document.getElementById("targetPrice").value = "";
+    const clientCodeElem = document.getElementById("clientCode");
+    const clientNameElem = document.getElementById("clientName");
+    const itemAmountElem = document.getElementById("itemAmount");
+    const targetPriceElem = document.getElementById("targetPrice");
 
-    document.querySelectorAll("#snapshotsTableBody tr").forEach(row => {
+    if(clientCodeElem) clientCodeElem.value = "";
+    if(clientNameElem) clientNameElem.value = "";
+    if(itemAmountElem) itemAmountElem.value = "1";
+    if(targetPriceElem) targetPriceElem.value = "";
+
+    document.querySelectorAll("#snapshotsTableBody tr, #targetSnapshotsTableBody tr").forEach(row => {
         row.classList.remove("selected-row");
     });
 
     renderOrderItems();
-    loadSnapshots();
+    clearTarget(); 
+    renderClients(clients); 
+    closeModal();
 }
 
-// Event Listeners para tecla ENTER
-document.getElementById("clientCode").addEventListener("keypress", function (event) {
-    if (event.key === "Enter") searchClient();
-});
+/* ==========================================================================
+   EVENT LISTENERS & UTILS
+   ========================================================================= */
+const elClientCode = document.getElementById("clientCode");
+if (elClientCode) {
+    elClientCode.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") searchClient();
+    });
+}
 
-document.getElementById("targetPrice").addEventListener("keypress", function (event) {
-    if (event.key === "Enter") searchTarget();
-});
+const elTargetPrice = document.getElementById("targetPrice");
+if (elTargetPrice) {
+    elTargetPrice.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") searchTarget();
+    });
+}
 
-document.getElementById("itemAmount").addEventListener("keypress", function (event) {
-    if (event.key === "Enter") addItem();
-});
+const elItemAmount = document.getElementById("itemAmount");
+if (elItemAmount) {
+    elItemAmount.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") addItem();
+    });
+}
 
 function showToast(message, success = true) {
     const container = document.getElementById("toastContainer");
+    if (!container) return; 
+    
     const toast = document.createElement("div");
-
     toast.className = success ? "toast toast-success" : "toast toast-error";
 
     if (Array.isArray(message)) {
@@ -351,8 +608,20 @@ function showToast(message, success = true) {
 
     setTimeout(() => {
         toast.classList.remove("show");
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
+        setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+/* ==========================================================================
+   NAVEGAÇÃO
+   ========================================================================= */
+
+// Função ativada pelo botão "Voltar"
+function goBack() {
+    // Retorna para a página anterior no histórico do navegador
+    window.history.back();
+    
+    // 💡 DICA: Se você quiser forçar a volta para uma URL específica 
+    // em vez do histórico do navegador, comente a linha acima e use a abaixo:
+    // window.location.href = "/order/list/"; // Substitua pela sua rota real
 }

@@ -48,5 +48,11 @@ class Controller:
         res = self.response.operationsReturn(stock_code=stock_code,
                                              code_product=code_product,
                                              time_interval=time_interval).toDict()
-        print(res)
+        return JsonResponse(res, status=res.get('status', 200), safe=False)
+    
+    @csrf_exempt
+    def itemAmountReturn(self, request):
+        data = json.loads(request.body)
+        code_product = data.get('code_product', '')
+        res = self.response.itemAmountReturn(code_product=code_product).toDict()
         return JsonResponse(res, status=res.get('status', 200), safe=False)

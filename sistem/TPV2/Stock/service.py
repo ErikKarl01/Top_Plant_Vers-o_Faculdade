@@ -179,3 +179,20 @@ class Service:
         except Exception as e:
             return self.response.erroMens(menssage=[self.errors.CONVERSION_ERROR, str(e)], status=500)
         return self.response.sucessMens(mensage=self.sucess.STOCK_UPDATED, value=dict_operations)
+    
+    def itemAmountReturn(self, code_product: str):
+        mens_code = self.validate.validateCode(code_product)
+        if mens_code != MENSAGE_SUCESS:
+            return self.response.erroMens(menssage=mens_code, status=400)
+        if not self.product_model.productExists(code_product):
+            return self.response.erroMens(menssage='Produto não encontrado', status=404)
+        
+        try:
+            item = self.item_model.stockItemReturn(code_product=code_product)
+            if not item: 
+                return self.response.erroMens(menssage='Item não encontrado no estoque', status=404)
+        except Exception as e:
+            return self.response.erroMens(menssage=[Errors.MODELS_OPERATION, str(e)], status=500)
+        
+        return self.response.sucessMens(mensage='', value=item.amount)
+        

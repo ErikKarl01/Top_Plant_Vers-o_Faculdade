@@ -14,4 +14,5 @@ urlpatterns = [
     path('stockReturnForCategory/', controller.stockReturnForCategory, name='stockReturnForCategory'),
     #Testado
     path('operationsReturn/', controller.operationsReturn, name='operationsReturn'),
+    path('itemAmountReturn/', controller.itemAmountReturn, name='itemAmountReturn')
 ]
