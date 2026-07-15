@@ -337,6 +337,10 @@ a {
     z-index: 2000;
 }
 
+.modal-overlay.active {
+    display: flex;
+}
+
 .modal-box {
     background: var(--bg-panel);
     padding: 2.5rem;
@@ -349,6 +353,8 @@ a {
 
 .modal-box h3 { margin-top: 0; color: var(--text-main); margin-bottom: 1rem;}
 .modal-box p { margin-bottom: 1.5rem; color: var(--text-muted); }
+
+
 
 /* ==================== TOASTS (NOTIFICAÇÕES) ==================== */
 .toast-container {
@@ -430,6 +436,7 @@ a {
 .stock-actions{
     display:flex;
     gap:.5rem;
+    justify-content: center;
 }
 
 .stock-actions .btn{

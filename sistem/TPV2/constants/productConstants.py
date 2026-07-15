@@ -5,7 +5,7 @@ PRODUCT_TYPE_CHOICES  = [
 ]
 
 class Errors:
-    PRODUCT_ALREADY_EXISTS = 'Produto já cadastrado.'
+    PRODUCT_ALREADY_EXISTS = 'Produto já cadastrado com mesmo nome ou código.'
     NAME_ALREADY_EXISTS = 'Nome do produto já cadastrado.'
     PRODUCT_NOT_FOUND = 'Produto não encontrado.'
     CONVERSION_ERROR = 'Erro durante a conversão de objetos.'

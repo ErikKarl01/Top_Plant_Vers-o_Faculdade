@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadStock(category) {
     try {
-        // Dispara as requisições em sequência para evitar colisões/travamentos no banco de dados local
         const resLicensed = await fetch(STOCK_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -45,25 +44,21 @@ async function loadStock(category) {
 
         let combinedItems = [];
 
-        // Logs de diagnóstico no console (F12) para validar a resposta do servidor
         console.log(`[${category}] Retorno de Licenciados:`, dataLicensed);
         console.log(`[${category}] Retorno de Não Licenciados:`, dataNotLicensed);
 
-        // Validação de Licenciados
         if (dataLicensed.sucess && dataLicensed.value && dataLicensed.value.items) {
             combinedItems = combinedItems.concat(dataLicensed.value.items);
         } else if (!dataLicensed.sucess) {
             console.warn(`[${category}] Erro ao buscar Licenciados:`, dataLicensed.mensage);
         }
 
-        // Validação de Não Licenciados
         if (dataNotLicensed.sucess && dataNotLicensed.value && dataNotLicensed.value.items) {
             combinedItems = combinedItems.concat(dataNotLicensed.value.items);
         } else if (!dataNotLicensed.sucess) {
             console.warn(`[${category}] Erro ao buscar Não Licenciados:`, dataNotLicensed.mensage);
         }
 
-        // Se ambos falharem de verdade, exibe o erro em tela
         if (!dataLicensed.sucess && !dataNotLicensed.sucess) {
             const mensagensErro = dataLicensed.mensage || dataNotLicensed.mensage;
             if (Array.isArray(mensagensErro)) {
@@ -73,7 +68,6 @@ async function loadStock(category) {
             }
         }
 
-        // Atualiza o estoque global correto e renderiza na tabela correspondente
         if (category === "Hortaliças") {
             hortStock = combinedItems;
             renderTable(hortStock, "tableHort");
@@ -108,11 +102,13 @@ function renderTable(stock, idTable) {
     }
 
     stock.forEach(item => {
-        // Log de diagnóstico: mostra exatamente o que está chegando na variável "licensed" para cada item
         console.log(`Renderizando -> Produto: ${item.product_name} | licensed:`, item.licensed);
 
-        // Verificação robusta: aceita booleano real, string "true" ou número 1
         const isLicensed = (item.licensed === true || item.licensed === "true" || item.licensed === 1);
+
+        // Prevenção de quebra de aspas simples nos nomes de produtos (ex: Manjericão d'água)
+        const escapedCode = String(item.product_code).replace(/'/g, "\\'");
+        const escapedName = String(item.product_name).replace(/'/g, "\\'");
 
         tbody.innerHTML += `
             <tr>
@@ -131,13 +127,15 @@ function renderTable(stock, idTable) {
                 <td>
                     <div style="display:flex;gap:.5rem">
                         <button
+                            type="button"
                             class="btn btn-positive btn-small"
-                            onclick="openAddModal('${item.product_code}','${item.product_name}')">
+                            onclick="openAddModal('${escapedCode}','${escapedName}')">
                             + Quantidade
                         </button>
                         <button
+                            type="button"
                             class="btn btn-danger btn-small"
-                            onclick="openRemoveModal('${item.product_code}','${item.product_name}')">
+                            onclick="openRemoveModal('${escapedCode}','${escapedName}')">
                             - Quantidade
                         </button>
                     </div>
@@ -226,17 +224,28 @@ async function confirmOperation() {
 
     const url = selectedOperation === "add" ? ADD_URL : REMOVE_URL;
 
+    // Log detalhado no console para você verificar o envio
+    console.log("[CONFIRMAR] Enviando dados para o servidor:", {
+        product_code: selectedProduct,
+        code_product: selectedProduct,
+        code: selectedProduct,
+        amount: amount
+    });
+
     try {
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                code_product: selectedProduct,
+                product_code: selectedProduct, // Variação 1
+                code_product: selectedProduct, // Variação 2
+                code: selectedProduct,         // Variação 3
                 amount: amount
             })
         });
 
         const data = await response.json();
+        console.log("[CONFIRMAR] Resposta recebida do servidor:", data);
 
         if (data.sucess) {
             showToast(data.mensage, "success");
@@ -253,7 +262,7 @@ async function confirmOperation() {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error("[CONFIRMAR] Erro na requisição:", error);
         showToast("Erro ao comunicar com o servidor.", "error");
     }
 }

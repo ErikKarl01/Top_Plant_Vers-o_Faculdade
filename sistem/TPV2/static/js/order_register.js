@@ -204,7 +204,7 @@ function clearTarget() {
 }
 
 /* ==========================================================================
-   CLIENTS LOGIC (Listagem e Travamento de Seleção)
+   CLIENTS LOGIC (Listagem e Filtro)
    ========================================================================= */
 async function loadClients() {
     if (!clientsTable) return;
@@ -281,13 +281,18 @@ function renderClients(list) {
     });
 }
 
+// *** NOVA FUNÇÃO SEARCH CLIENT CORRIGIDA ***
 async function searchClient() {
-    const code = document.getElementById("clientCode").value.trim();
+    const codeElem = document.getElementById("clientCode");
+    const nameElem = document.getElementById("clientName");
+    
+    const code = codeElem ? codeElem.value.trim() : "";
+    const name = nameElem ? nameElem.value.trim() : "";
 
-    if (!code) {
+    // Se ambos estiverem vazios, limpa a seleção e carrega todos novamente
+    if (!code && !name) {
         selectedClient = null;
-        document.getElementById("clientName").value = "";
-        renderClients(clients);
+        loadClients();
         return;
     }
 
@@ -295,27 +300,70 @@ async function searchClient() {
         const response = await fetch("/client/search/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code_client: code, name: "", doc: "" })
+            body: JSON.stringify({ code_client: code, name: name, doc: "" })
         });
 
         const data = await response.json();
 
-        if (!data.sucess) {
+        if (!data.sucess || !data.value) {
             selectedClient = null;
-            document.getElementById("clientName").value = "";
-            renderClients(clients);
-            showToast(data.mensage, false);
+            renderClients([]); // Esvazia a tabela visualmente
+            showToast(data.mensage || "Nenhum cliente encontrado.", false);
             return;
         }
 
-        const clientResult = data.value.client ? data.value.client : data.value;
-        selectedClient = clientResult;
-        
-        document.getElementById("clientName").value = selectedClient.name;
-        renderClients(clients);
+        // O backend pode retornar um Array (vários clientes) ou um Objeto (um cliente só)
+        if (Array.isArray(data.value)) {
+            clients = data.value;
+            renderClients(clients);
+            
+            // Se a busca retornou exatamente UM cliente no array, nós já o selecionamos
+            if (clients.length === 1) {
+                const c = clients[0].client ? clients[0].client : clients[0];
+                selectedClient = c;
+                if (nameElem) nameElem.value = c.name;
+                if (codeElem) codeElem.value = c.code;
+                renderClients(clients); // Re-renderiza para aplicar a classe 'selected-row'
+                showToast(`Cliente ${c.name} vinculado ao pedido.`, true);
+            } else {
+                selectedClient = null; // O usuário precisará clicar na tabela para escolher um
+                showToast("Múltiplos clientes encontrados. Selecione na lista.", true);
+            }
+        } else {
+            // Retornou apenas um objeto único
+            const clientResult = data.value.client ? data.value.client : data.value;
+            selectedClient = clientResult;
+            clients = [data.value]; // Transforma em array para a tabela conseguir renderizar
+            
+            if (nameElem) nameElem.value = selectedClient.name;
+            if (codeElem) codeElem.value = selectedClient.code;
+            
+            renderClients(clients);
+            showToast(`Cliente ${selectedClient.name} vinculado ao pedido.`, true);
+        }
     } catch (error) {
-        showToast("Erro ao localizar cliente.", false);
+        showToast("Erro ao localizar cliente no servidor.", false);
     }
+}
+
+/* ==========================================================================
+   FUNÇÃO PARA LIMPAR FILTRO DE CLIENTES
+   ========================================================================= */
+function clearClientSearch() {
+    const codeElem = document.getElementById("clientCode");
+    const nameElem = document.getElementById("clientName");
+    
+    // 1. Esvazia os campos de input
+    if (codeElem) codeElem.value = "";
+    if (nameElem) nameElem.value = "";
+    
+    // 2. Remove a seleção atual
+    selectedClient = null;
+    
+    // 3. Recarrega a lista original completa chamando o backend
+    loadClients();
+    
+    showToast("Filtros limpos. Exibindo todos os clientes.", true);
 }
 
 /* ==========================================================================
@@ -544,7 +592,7 @@ function clearOrder() {
 
     renderOrderItems();
     clearTarget(); 
-    renderClients(clients); 
+    loadClients(); // Ao limpar, recarrega a lista original
     closeModal();
 }
 
@@ -554,6 +602,14 @@ function clearOrder() {
 const elClientCode = document.getElementById("clientCode");
 if (elClientCode) {
     elClientCode.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") searchClient();
+    });
+}
+
+// *** NOVO ESCUTADOR PARA O NOME DO CLIENTE ***
+const elClientName = document.getElementById("clientName");
+if (elClientName) {
+    elClientName.addEventListener("keypress", function (event) {
         if (event.key === "Enter") searchClient();
     });
 }
@@ -572,12 +628,14 @@ if (elItemAmount) {
     });
 }
 
+// *** TOAST CORRIGIDO PARA ALINHAR COM O CSS GLOBAL ***
 function showToast(message, success = true) {
     const container = document.getElementById("toastContainer");
     if (!container) return; 
     
     const toast = document.createElement("div");
-    toast.className = success ? "toast toast-success" : "toast toast-error";
+    // Removido "toast-success/toast-error" com hífen e adicionado classes separadas por espaço
+    toast.className = success ? "toast success" : "toast error";
 
     if (Array.isArray(message)) {
         toast.innerHTML = message.join("<br>");

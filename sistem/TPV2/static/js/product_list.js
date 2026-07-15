@@ -98,7 +98,7 @@ function renderTable(products) {
 
         const licensedBadge = p.licensed 
             ? `<span class="badge badge-success">Sim</span>` 
-            : `<span class="badge badge-warning">Não Licenciado</span>`;
+            : `<span class="badge badge-warning">Não</span>`;
 
         tr.innerHTML = `
             <td>${p.code}</td>

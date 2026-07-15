@@ -12,10 +12,20 @@ let operations = [];
 //====================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-
     loadOperations();
-
 });
+
+//====================================================
+// Função Auxiliar: Converte YYYY-MM-DD para DD/MM/YYYY
+//====================================================
+function formatDateToBR(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-"); // Divide [YYYY, MM, DD]
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`; // Retorna DD/MM/YYYY
+    }
+    return dateStr;
+}
 
 //====================================================
 // Consulta operações
@@ -44,14 +54,11 @@ async function loadOperations(){
         body.code_product = productCode;
 
     if(start !== "" && end !== ""){
-
+        // O Front converte para DD/MM/YYYY antes de mandar para o Back
         body.time_interval = {
-
-            start:start,
-            end:end
-
+            start: formatDateToBR(start),
+            end: formatDateToBR(end)
         };
-
     }
 
     try{
@@ -112,60 +119,45 @@ async function loadOperations(){
 //====================================================
 // Renderização
 //====================================================
-
 function renderOperations(){
+    const tbody = document.getElementById("operationsTable");
+    tbody.innerHTML = "";
 
-    const tbody =
-        document.getElementById("operationsTable");
-
-    tbody.innerHTML="";
-
-    if(operations.length===0){
-
-        tbody.innerHTML=`
-
+    if(operations.length === 0){
+        tbody.innerHTML = `
             <tr>
-
                 <td colspan="7" style="text-align:center">
-
                     Nenhuma operação encontrada.
-
                 </td>
-
             </tr>
-
         `;
-
         return;
-
     }
 
-    operations.forEach(operation=>{
-
-        tbody.innerHTML+=`
-
+    operations.forEach(operation => {
+        tbody.innerHTML += `
             <tr>
-
                 <td>${operation.stock_code}</td>
-
                 <td>${operation.code_product}</td>
-
                 <td>${operation.name_product}</td>
-
                 <td>${operation.type_operation}</td>
-
                 <td>${operation.value_before}</td>
-
                 <td>${operation.value_after}</td>
-
-                <td>${operation.date_operation}</td>
-
+                <td>${formatDateTimeBR(operation.date_operation)}</td>
             </tr>
-
         `;
-
     });
+}
 
+//====================================================
+// Função Auxiliar: Converte ISO/Data Completa para PT-BR
+//====================================================
+function formatDateTimeBR(dateStr) {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    
+    // O toLocaleString com 'pt-BR' já cuida de deixar no formato: DD/MM/YYYY HH:MM:SS
+    return date.toLocaleString('pt-BR'); 
 }
 
 //====================================================

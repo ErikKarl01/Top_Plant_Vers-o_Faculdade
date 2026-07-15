@@ -63,7 +63,10 @@ class SnapshotService:
         if price == -1:
             price = self.p_model.productReturn(code_product=snapshot_model.product.code).price
          
-        if price <= discount and (price != 0 and discount !=0):
+        if price <= 0:
+            return self.response.erroMens(menssage="O preço do produto não pode ser zero.", status=400)
+         
+        if price <= discount:
             return self.response.erroMens(menssage=Errors.DICOUNT_BIGGER_PRICE, status=400)
         
         try:

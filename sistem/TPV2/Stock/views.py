@@ -45,6 +45,7 @@ class Controller:
         code_product = data.get('code_product', '')
         stock_code = data.get('stock_code', '')
         time_interval = data.get('time_interval', {})
+        print(time_interval)
         res = self.response.operationsReturn(stock_code=stock_code,
                                              code_product=code_product,
                                              time_interval=time_interval).toDict()

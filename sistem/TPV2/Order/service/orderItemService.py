@@ -4,6 +4,7 @@ from Product.models import Product
 from constants.responseClass import Response
 from constants.orderConstantes import Errors, Success
 from constants.productConstants import Errors as ERROSPRO
+from Stock.service import Service
 
 class OrderItemService:
     o_model = Order()
@@ -12,6 +13,7 @@ class OrderItemService:
     validateOrder = Validate().Oder()
     validate = Validate()
     response = Response()
+    stock_service = Service()
     
     def saveItem(self, code_order: str, code_product: str, amount: int):
         mens_code_ord = self.validateOrder.code(code_order)
@@ -49,6 +51,7 @@ class OrderItemService:
             return self.response.erroMens(menssage=Errors.ORDER_DONT_EXISTS, status=400)
         if not self.p_model.productExists(code_product=code_product):
             return self.response.erroMens(menssage=ERROSPRO.PRODUCT_NOT_FOUND, status=400)
+        self.stock_service.removeAmount(code_product, provided)
         
         try:
             item = self.i_model.returnItemsByOrderProduct(code_order=code_order, code_product=code_product)

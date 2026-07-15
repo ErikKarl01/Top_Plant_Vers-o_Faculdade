@@ -24,8 +24,7 @@ from datetime import datetime
 class ToClean:
     def onlyDigits(self, val: str) -> str:
         val_str = str(val or '').strip()
-        val_str = re.sub(r'[.\- \t)(\\]+', '', val_str)
-        return val_str
+        return re.sub(r'\D', '', val_str)
 
     def alphaNumeric(self, val: str) -> str:
         '''Return uppercase letters'''

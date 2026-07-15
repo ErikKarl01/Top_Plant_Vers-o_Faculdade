@@ -67,15 +67,24 @@
             <h2>Dados do Cliente</h2>
         </div>
 
-        <div class="form-grid" style="margin-bottom: 1.5rem;">
-            <div class="form-group">
-                <label class="form-label">Buscar Código do Cliente</label>
+        <div class="form-grid" style="margin-bottom: 1.5rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="clientCode">Buscar Código do Cliente</label>
                 <input id="clientCode" class="form-control" type="text" placeholder="Digite o código e pressione Enter">
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Nome do Cliente Vinculado</label>
-                <input id="clientName" class="form-control" type="text" readonly placeholder="Nenhum cliente selecionado">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="clientName">Nome do Cliente</label>
+                <input id="clientName" class="form-control" type="text" placeholder="Digite o nome e pressione Enter">
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; height: 42px;">
+                <button class="btn btn-positive" onclick="searchClient()" style="flex: 1; min-width: 100px;">
+                    Filtrar
+                </button>
+                <button class="btn btn-cancel" onclick="clearClientSearch()" style="flex: 1; min-width: 100px;">
+                    Limpar
+                </button>
             </div>
         </div>
 
