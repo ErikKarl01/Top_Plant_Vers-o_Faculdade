@@ -152,6 +152,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_item_of_product')
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_item_of_order')
+    original_amount = models.IntegerField(default=0, null=False, blank=False)
     amount = models.IntegerField(default=0, null=False, blank=True)
     price = models.FloatField(default=0.0)
     discount = models.FloatField(default=0.0)
@@ -168,7 +169,7 @@ class OrderItem(models.Model):
             item = OrderItem()
             item.order = order
             item.product = product
-            
+        item.original_amount = amount
         item.amount = amount
         item.price = snapshot_price
         item.discount = snapshot_discount

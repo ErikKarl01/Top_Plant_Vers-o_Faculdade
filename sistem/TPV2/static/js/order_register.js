@@ -23,8 +23,6 @@ window.onload = () => {
    SNAPSHOTS LOGIC (TABELA PADRÃO COM ESTOQUE)
    ========================================================================= */
 
-// Bate na sua rota individual e retorna 0 se o produto não tiver estoque (404/500)
-// Bate na sua rota via POST mandando o código no corpo (body) da requisição
 async function fetchStock(product_code) {
     try {
         const response = await fetch("/stock/itemAmountReturn/", { 
@@ -35,25 +33,21 @@ async function fetchStock(product_code) {
         
         const data = await response.json();
 
-        // Se o status for de erro (como o 404) ou sucess falso (produto sem estoque), retorna 0
         if (!response.ok || data.sucess === false) {
             return 0;
         }
 
-        // Sucesso: retorna a quantidade real
         return Number(data.value || 0);
     } catch (error) {
-        // Se a rede falhar, garante que a tela não quebre e exibe 0
         return 0;
     }
 }
 
-// Espera o estoque de todos os produtos carregar antes de exibir na tabela
 async function loadSnapshots() {
     selectedSnapshot = null;
 
     if (snapshotsTable) {
-        snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Carregando produtos e estoques...</td></tr>`;
+        snapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Carregando produtos e estoques...</td></tr>`;
     }
 
     try {
@@ -61,27 +55,22 @@ async function loadSnapshots() {
         const data = await response.json();
 
         if (!data.sucess) {
-            if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum snapshot encontrado.</td></tr>`;
+            if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhum snapshot encontrado.</td></tr>`;
             showToast(data.mensage, false);
             return;
         }
 
         let tempSnapshots = data.value;
 
-        // Dispara as requisições de estoque para todos os produtos simultaneamente
         const stockPromises = tempSnapshots.map(async (snapshot) => {
             snapshot.stock_amount = await fetchStock(snapshot.product_code);
             return snapshot;
         });
 
-        // Aguarda todas as respostas (seja a quantidade real ou o 0 do fallback)
         snapshots = await Promise.all(stockPromises);
-        
-        // Renderiza a tabela com a trava de segurança pronta para agir
         renderSnapshots(snapshots);
     } catch (error) {
-        console.error(error);
-        if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Erro ao carregar snapshots.</td></tr>`;
+        if (snapshotsTable) snapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Erro ao carregar snapshots.</td></tr>`;
         showToast("Erro interno ao carregar produtos.", false);
     }
 }
@@ -91,7 +80,7 @@ function renderSnapshots(list) {
     snapshotsTable.innerHTML = "";
 
     if (!list || list.length === 0) {
-        snapshotsTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum produto encontrado.</td></tr>`;
+        snapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhum produto encontrado.</td></tr>`;
         return;
     }
 
@@ -102,15 +91,17 @@ function renderSnapshots(list) {
         const price = Number(snapshot.price || 0);
         const discount = Number(snapshot.discount || 0);
         const finalPrice = price - discount;
-        const stock = Number(snapshot.stock_amount || 0); // Pegando o estoque do backend
+        const stock = Number(snapshot.stock_amount || 0); 
 
         tr.innerHTML = `
             <td>${snapshot.product_code || "-"}</td>
             <td>${snapshot.product_code_name || "Sem Nome"}</td>
+            <td><strong>${snapshot.measure || "-"}</strong></td>
             <td>R$ ${price.toFixed(2)}</td>
             <td>R$ ${discount.toFixed(2)}</td>
             <td>R$ ${finalPrice.toFixed(2)}</td>
-            <td><strong>${stock}</strong></td> `;
+            <td><strong>${stock}</strong></td>
+        `;
 
         tr.onclick = () => {
             document.querySelectorAll("#snapshotsTableBody tr, #targetSnapshotsTableBody tr").forEach(row => row.classList.remove("selected-row"));
@@ -135,7 +126,7 @@ async function searchTarget() {
     }
 
     if (targetSnapshotsTable) {
-        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Calculando melhor combinação...</td></tr>`;
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;">Calculando melhor combinação...</td></tr>`;
     }
 
     try {
@@ -148,7 +139,7 @@ async function searchTarget() {
         const data = await response.json();
 
         if (!data.sucess) {
-            if (targetSnapshotsTable) targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhum resultado encontrado.</td></tr>`;
+            if (targetSnapshotsTable) targetSnapshotsTable.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;">Nenhum resultado encontrado.</td></tr>`;
             showToast(data.mensage, false);
             return;
         }
@@ -157,7 +148,6 @@ async function searchTarget() {
         renderTargetSnapshots(targetSnapshots);
         showToast("Itens listados em ordem de melhor preferência para fechar o valor do pedido.", true);
     } catch (error) {
-        console.error(error);
         showToast("Erro ao calcular meta.", false);
     }
 }
@@ -167,7 +157,7 @@ function renderTargetSnapshots(list) {
     targetSnapshotsTable.innerHTML = "";
 
     if (!list || list.length === 0) {
-        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Insira um valor alvo e clique em Ordenar.</td></tr>`;
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;">Insira um valor alvo e clique em Ordenar.</td></tr>`;
         return;
     }
 
@@ -186,6 +176,7 @@ function renderTargetSnapshots(list) {
         tr.innerHTML = `
             <td>${snapshot.product_code || "-"}</td>
             <td>${snapshot.product_code_name || "Sem Nome"}</td>
+            <td><strong>${snapshot.measure || "-"}</strong></td>
             <td>R$ ${price.toFixed(2)}</td>
             <td>R$ ${discount.toFixed(2)}</td>
             <td>R$ ${finalPrice.toFixed(2)}</td>
@@ -207,7 +198,7 @@ function clearTarget() {
     document.getElementById("targetPrice").value = "";
     targetSnapshots = [];
     if (targetSnapshotsTable) {
-        targetSnapshotsTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.5rem;">Insira uma meta de preço para liberar as sugestões.</td></tr>`;
+        targetSnapshotsTable.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:1.5rem;">Insira uma meta de preço para liberar as sugestões.</td></tr>`;
     }
     loadSnapshots();
 }
@@ -231,7 +222,6 @@ async function loadClients() {
         clients = data.value;
         renderClients(clients);
     } catch (error) {
-        console.error(error);
         clientsTable.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:2rem;">Erro ao carregar clientes.</td></tr>`;
         showToast("Erro interno ao carregar clientes.", false);
     }
@@ -324,7 +314,6 @@ async function searchClient() {
         document.getElementById("clientName").value = selectedClient.name;
         renderClients(clients);
     } catch (error) {
-        console.error(error);
         showToast("Erro ao localizar cliente.", false);
     }
 }
@@ -337,7 +326,7 @@ function renderOrderItems() {
     orderTable.innerHTML = "";
 
     if (orderItems.length === 0) {
-        orderTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Nenhum item adicionado.</td></tr>`;
+        orderTable.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;">Nenhum item adicionado.</td></tr>`;
         const totalElem = document.getElementById("totalItems");
         if(totalElem) totalElem.innerText = "0";
         return;
@@ -349,6 +338,7 @@ function renderOrderItems() {
         tr.innerHTML = `
             <td>${item.product_code}</td>
             <td>${item.product_name}</td>
+            <td><strong>${item.measure}</strong></td>
             <td>${item.amount}</td>
             <td>R$ ${Number(item.price).toFixed(2)}</td>
             <td>R$ ${Number(item.discount).toFixed(2)}</td>
@@ -372,19 +362,17 @@ function addItem() {
 
     const amountInput = document.getElementById("itemAmount").value;
     const amount = parseInt(amountInput);
-    const stockAvailable = Number(selectedSnapshot.stock_amount || 0); // Busca o estoque real
+    const stockAvailable = Number(selectedSnapshot.stock_amount || 0); 
 
     if (isNaN(amount) || amount <= 0) {
         showToast("Quantidade inválida.", false);
         return;
     }
 
-    // Calcula total que o usuário quer levar contando o que já tem na sacola
     const exists = orderItems.find(item => item.product_code === selectedSnapshot.product_code);
     const currentAmountInCart = exists ? exists.amount : 0;
     const totalAttempted = currentAmountInCart + amount;
 
-    // A TRAVA DE SEGURANÇA QUE COMBINAMOS:
     if (totalAttempted > stockAvailable) {
         showToast(`Estoque insuficiente! Você tentou adicionar ${totalAttempted}, mas só temos ${stockAvailable} unid. de ${selectedSnapshot.product_code_name}.`, false);
         return;
@@ -396,6 +384,7 @@ function addItem() {
         orderItems.push({
             product_code: selectedSnapshot.product_code,
             product_name: selectedSnapshot.product_code_name,
+            measure: selectedSnapshot.measure || "-", 
             amount: amount,
             price: Number(selectedSnapshot.price),
             discount: Number(selectedSnapshot.discount)
@@ -446,7 +435,6 @@ async function nextStep() {
 
         buildOrderSummaryModal(data.value);
     } catch (error) {
-        console.error(error);
         showToast("Erro ao processar cálculo totalizador no servidor.", false);
     }
 }
@@ -466,6 +454,7 @@ function buildOrderSummaryModal(totalBackendValue) {
                     <tr style="border-bottom: 2px solid #eee; text-align:left;">
                         <th style="padding: 0.5rem 0;">Cód.</th>
                         <th>Produto</th>
+                        <th>Unidade</th>
                         <th>Qtd.</th>
                     </tr>
                 </thead>
@@ -474,6 +463,7 @@ function buildOrderSummaryModal(totalBackendValue) {
                         <tr style="border-bottom:1px solid #f9f9f9;">
                             <td style="padding: 0.5rem 0;">${item.product_code}</td>
                             <td>${item.product_name}</td>
+                            <td>${item.measure}</td>
                             <td><strong>${item.amount}x</strong></td>
                         </tr>
                     `).join('')}
@@ -506,8 +496,6 @@ async function confirmAndSaveOrder() {
         items: backendItemsPayload
     };
 
-    console.log("🚀 PAYLOAD INDO PRO BACK: ", JSON.stringify(orderDataPayload, null, 2));
-
     try {
         const response = await fetch("/order/order/create/", {
             method: "POST",
@@ -516,9 +504,7 @@ async function confirmAndSaveOrder() {
         });
 
         const data = await response.json();
-        console.log("🛑 RESPOSTA DO BACKEND: ", data);
 
-        // A CORREÇÃO DE VALIDAÇÃO BLINDADA: Captura erro de status ou falha lógica (menssage/mensage/message)
         if (data.sucess === false || !response.ok) {
             const errorMsg = data.menssage || data.mensage || data.message || "Erro na validação do pedido.";
             showToast(errorMsg, false);
@@ -533,8 +519,7 @@ async function confirmAndSaveOrder() {
         }, 1500);
 
     } catch (error) {
-        console.error("ERRO NO FETCH: ", error);
-        showToast("Erro interno ao tentar salvar o pedido. Verifique o console.", false);
+        showToast("Erro interno ao tentar salvar o pedido.", false);
     }
 }
 
@@ -615,13 +600,6 @@ function showToast(message, success = true) {
 /* ==========================================================================
    NAVEGAÇÃO
    ========================================================================= */
-
-// Função ativada pelo botão "Voltar"
 function goBack() {
-    // Retorna para a página anterior no histórico do navegador
     window.history.back();
-    
-    // 💡 DICA: Se você quiser forçar a volta para uma URL específica 
-    // em vez do histórico do navegador, comente a linha acima e use a abaixo:
-    // window.location.href = "/order/list/"; // Substitua pela sua rota real
 }

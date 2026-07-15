@@ -2,6 +2,10 @@ from __future__ import annotations
 from constants.clientConstants import DOCUMENT_TYPE, ADRESS_TYPE, TYPE_PEOPLEPLACE_CHOICES
 from django.db import models
 
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
 class Client(models.Model):
     name = models.CharField(
         max_length=255,
@@ -43,6 +47,17 @@ class Client(models.Model):
         null=False, 
         blank=False
     )
+    is_active = models.BooleanField(
+        default=True,
+        editable=False
+    )
+    
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save()
     
     def clientSave(self, client: Client):
         if client: 
@@ -58,9 +73,8 @@ class Client(models.Model):
     
     def clientHasAdress(self, code_client: str):
         client = Client.objects.filter(code=code_client).first()
-        adress = Adress.objects.filter(client=client).first()
-        if adress:
-            return True
+        if client:
+            return Adress.objects.filter(client=client).exists()
         return False
 
     def clientExists(self, code_client: str='', doc: str='') -> bool:
@@ -73,6 +87,7 @@ class Client(models.Model):
         return False
 
     def clientReturn(self, doc: str='', code_client: str='', name: str=''):
+        client = None
         if name:
             list_client = Client.objects.filter(name=name)
             if not list_client:
@@ -82,15 +97,37 @@ class Client(models.Model):
             client = Client.objects.filter(doc=doc).first()
         elif code_client:
             client = Client.objects.filter(code=code_client).first()
+            
         if not client:
             return None
         return client
 
     def clientDelete(self, doc: str='', code_client: str=''):
+        client = None
         if doc:
-            Client.objects.filter(doc=doc).delete()
+            client = Client.objects.filter(doc=doc).first()
         elif code_client:
-            Client.objects.filter(code=code_client).delete()
+            client = Client.objects.filter(code=code_client).first()
+            
+        if client:
+            client.delete()
+            adress_instance = Adress()
+            adress_instance.adressDelete(code_client=client.code)
+        return None
+
+    def clientReactivate(self, doc: str='', code_client: str=''):
+        client = None
+        if doc:
+            client = Client.all_objects.filter(doc=doc).first()
+        elif code_client:
+            client = Client.all_objects.filter(code=code_client).first()
+            
+        if client and not client.is_active:
+            client.is_active = True
+            client.save()
+            adress_instance = Adress()
+            adress_instance.adressReactivate(code_client=client.code)
+            return client
         return None
         
     def clientList(self) -> list:
@@ -145,33 +182,45 @@ class Adress(models.Model):
         blank=True,
         choices=ADRESS_TYPE
     )
+    is_active = models.BooleanField(
+        default=True,
+        editable=False
+    )
+    
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save()
     
     def adressSave(self, adress: Adress, code_client: str):
         if adress:
             client = Client.objects.filter(code=code_client).first()
-            adress.client = client
-            adress.save()
-            return adress
+            if client:
+                adress.client = client
+                adress.save()
+                return adress
         return None   
     
     def adressExists(self, adress: Adress) -> bool:
         return Adress.objects.filter(city=adress.city, neig_b=adress.neig_b, number=adress.number).exists()
     
-    def adressReturn(self, code_client: str) -> Adress:
+    def adressReturn(self, code_client: str) -> Adress | None:
         if code_client:
             client = Client.objects.filter(code=code_client).first()
-            adress = Adress.objects.filter(client=client).first()
-            return adress
+            if client:
+                return Adress.objects.filter(client=client).first()
         return None
     
-    def adressModify(self, adress: Adress, code_client: str) -> Adress:
+    def adressModify(self, adress: Adress, code_client: str) -> Adress | None:
         if not adress or not code_client:
-            print("1")
             return None
         client = Client.objects.filter(code=code_client).first()
+        if not client:
+            return None
         adress_obj = Adress.objects.filter(client=client).first()
-        if not client or not adress_obj:
-            print("2")
+        if not adress_obj:
             return None
         adress_obj.code_zone = adress.code_zone
         adress_obj.city = adress.city
@@ -180,14 +229,25 @@ class Adress(models.Model):
         adress_obj.number = adress.number
         adress_obj.type = adress.type
         adress_obj.save()
-        print("3")
         return adress_obj
     
     def adressDelete(self, code_client: str=''):
         if not code_client:
             return None
-        client = Client.objects.filter(code=code_client).first()
-        adress = Adress.objects.filter(client=client).first()
-        if not adress:
+        client = Client.all_objects.filter(code=code_client).first()
+        if client:
+            adress = Adress.objects.filter(client=client).first()
+            if adress:
+                adress.delete()
+        return None
+        
+    def adressReactivate(self, code_client: str=''):
+        if not code_client:
             return None
-        adress.delete()
+        client = Client.all_objects.filter(code=code_client).first()
+        if client:
+            adress = Adress.all_objects.filter(client=client).first()
+            if adress and not adress.is_active:
+                adress.is_active = True
+                adress.save()
+        return None

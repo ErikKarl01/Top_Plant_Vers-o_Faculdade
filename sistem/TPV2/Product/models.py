@@ -2,7 +2,11 @@ from __future__ import annotations
 from django.db import models
 from constants.productConstants import PRODUCT_TYPE_CHOICES
 
-class Product (models.Model):
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+class Product(models.Model):
     code = models.CharField(
         max_length=10,
         null=False,
@@ -38,6 +42,17 @@ class Product (models.Model):
         null=False,
         blank=False
     )
+    is_active = models.BooleanField(
+        default=True,
+        editable=False
+    )
+    
+    objects = ActiveManager()
+    all_objects = models.Manager()
+    
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save()
     
     def productSave(self, product: Product) -> Product | None:
         if product:
@@ -58,20 +73,31 @@ class Product (models.Model):
     def productUpdate(self, product: Product, code_product: str) -> Product | None:
         if product and code_product:
             product_obj = Product.objects.filter(code=code_product).first()
-            product_obj.code = product.code
-            product_obj.name = product.name
-            product_obj.type = product.type
-            product_obj.measure = product.measure
-            product_obj.description = product.description
-            product_obj.licensed = product.licensed
-            product_obj.save()
-            return product_obj
+            if product_obj:
+                product_obj.code = product.code
+                product_obj.name = product.name
+                product_obj.type = product.type
+                product_obj.measure = product.measure
+                product_obj.description = product.description
+                product_obj.licensed = product.licensed
+                product_obj.save()
+                return product_obj
         return None
         
-    
     def productDelete(self, code_product: str) -> None:
         if code_product:
-            Product.objects.filter(code=code_product).first().delete()
+            product = Product.objects.filter(code=code_product).first()
+            if product:
+                product.delete()
+        return None
+
+    def productReactivate(self, code_product: str) -> Product | None:
+        if code_product:
+            product = Product.all_objects.filter(code=code_product).first()
+            if product and not product.is_active:
+                product.is_active = True
+                product.save()
+                return product
         return None
     
     def productReturn(self, code_product: str='', name: str='') -> Product | None:
@@ -89,7 +115,7 @@ class Product (models.Model):
             return list(products)
         return None
     
-    def productUpdatePrice(self, code_product: str='', name: str='', price: float=0.0) -> Product:
+    def productUpdatePrice(self, code_product: str='', name: str='', price: float=0.0) -> Product | None:
         product = self.productReturn(code_product=code_product, name=name)
         if product and price:
             product.price = price

@@ -125,10 +125,6 @@ class Service:
             erro_mensages.append(self.errors.INVALID_PRODUCTS_LICENSED)
         if erro_mensages:
             return self.response.erroMens(menssage=erro_mensages, status=400)
-        if category in PRODUCT_TYPE_CHOICES[0]:
-            category = PRODUCT_TYPE_CHOICES[0][0]
-        elif category in PRODUCT_TYPE_CHOICES[1]:
-            category = PRODUCT_TYPE_CHOICES[1][0]
         stock = self.stock_model.stockReturnForCategory(stock_category=category, products_licensed=products_licensed)
         if not stock:
             return self.response.erroMens(menssage=[self.errors.STOCK_NOT_FOUND], status=400)

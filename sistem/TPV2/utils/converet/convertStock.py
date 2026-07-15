@@ -14,7 +14,8 @@ class ConvertStockItem:
         return {
             "product_name": stock_item.product.name,
             "product_code": stock_item.product.code,
-            "amount": stock_item.amount
+            "amount": stock_item.amount,
+            "licensed": stock_item.product.licensed
         }
     
 class ConvertOperations:

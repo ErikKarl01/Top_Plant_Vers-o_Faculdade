@@ -15,9 +15,11 @@ class ConvertOrderItem:
         return {
             'product_name': item.product.name,
             'product_code': item.product.code,
+            'original_amount': item.original_amount,
             'amount': item.amount,
             'price': item.price,
-            'discount': item.discount
+            'discount': item.discount,
+            'measure': item.product.measure
         }
         
 class ConvertSnapshot:
@@ -27,5 +29,6 @@ class ConvertSnapshot:
             'product_code': snapsot.product.code,
             'product_code_name': snapsot.product.name,
             'price': snapsot.price,
-            'discount': snapsot.discount
+            'discount': snapsot.discount,
+            'measure': snapsot.product.measure
         }  

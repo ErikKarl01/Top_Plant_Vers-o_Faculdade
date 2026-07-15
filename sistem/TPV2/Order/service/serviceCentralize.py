@@ -174,9 +174,11 @@ class ServiceCentralized:
             response_ = self.snap_service.snapshotReturn(item.get('code_product'))
             if not response_.sucess:
                 return response_
-            price_roduct = response_.value.price
+            price_product = response_.value.price
+            discount_product = response_.value.discount 
             try:
-                total+=float(item.get('amount')*price_roduct)
+                amount = float(item.get('amount'))
+                total += amount*(price_product - discount_product)
             except Exception as e:
                 return self.response.erroMens(menssage=['Quantidade inválida detectada', str(e)], status=400)
         return self.response.sucessMens(mensage='Total do pedido:', value=total)

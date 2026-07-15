@@ -4,15 +4,14 @@ const tableBody = document.getElementById("ordersTableBody");
 const btnUpdate = document.getElementById("btnUpdate");
 const btnDelete = document.getElementById("btnDelete");
 
-// Inicialização
 window.onload = () => {
     loadOrders();
     setupModalListeners();
 };
 
-// =======================================================
-// CARREGAMENTO E RENDERIZAÇÃO
-// =======================================================
+/* =======================================================
+   CARREGAMENTO E RENDERIZAÇÃO
+   ======================================================= */
 
 async function loadOrders(filters = { code_client: "", status: "", time_interval: {} }) {
     selectedOrder = null;
@@ -37,7 +36,6 @@ async function loadOrders(filters = { code_client: "", status: "", time_interval
 
         const data = await response.json();
 
-        // 1. Tratamento de Erros da API
         if (!data.sucess) {
             tableBody.innerHTML = `
                 <div style="text-align:center; padding:2rem; color:var(--color-danger, red); font-weight:bold;">
@@ -61,7 +59,6 @@ async function loadOrders(filters = { code_client: "", status: "", time_interval
             return;
         }
 
-        // 2. Sem resultados
         if (!Array.isArray(data.value) || data.value.length === 0) {
             tableBody.innerHTML = `
                 <div style="text-align:center; padding:2rem; color:#555; font-weight:bold;">
@@ -74,7 +71,6 @@ async function loadOrders(filters = { code_client: "", status: "", time_interval
         renderOrders(data.value);
 
     } catch (error) {
-        console.error(error);
         tableBody.innerHTML = `
             <div style="text-align:center; padding:2rem; color:red;">
                 Erro de conexão ao carregar pedidos.
@@ -83,7 +79,6 @@ async function loadOrders(filters = { code_client: "", status: "", time_interval
     }
 }
 
-// Auxiliar para pegar o estilo correto da Badge de Status
 function getStatusBadgeClass(status) {
     if (!status) return "status-desconhecido";
     const s = status.toUpperCase();
@@ -93,11 +88,9 @@ function getStatusBadgeClass(status) {
     return "status-desconhecido";
 }
 
-// Auxiliar para formatar a data vinda do Django (ISO ou string padrão) para formato BR
 function formatarDataDoBanco(dataString) {
     if (!dataString) return "Data N/A";
     try {
-        // Se a data vier completa do banco (ex: 2026-03-30T14:23:00) pega só os primeiros 10 caracteres (ano-mes-dia)
         const apenasData = dataString.split("T")[0];
         const [ano, mes, dia] = apenasData.split("-");
         if(ano && mes && dia) {
@@ -109,7 +102,6 @@ function formatarDataDoBanco(dataString) {
     }
 }
 
-// >>> FUNÇÃO RENDERORDERS ATUALIZADA COM O NOVO HTML/CSS <<<
 function renderOrders(ordersData) {
     tableBody.innerHTML = "";
 
@@ -117,7 +109,6 @@ function renderOrders(ordersData) {
         const order = data.order;
         const items = data.order_items || [];
 
-        // Formatação das variáveis do dicionário Python do Django
         const orderCode = order.code || "N/A";
         const orderDate = formatarDataDoBanco(order.date);
         const clientCode = order.client_code || "-";
@@ -129,7 +120,7 @@ function renderOrders(ordersData) {
         if (items.length === 0) {
             itemsHTML = `
                 <tr>
-                    <td colspan="5" class="item-empty">Nenhum item neste pedido.</td>
+                    <td colspan="7" class="item-empty">Nenhum item neste pedido.</td>
                 </tr>
             `;
         } else {
@@ -138,7 +129,9 @@ function renderOrders(ordersData) {
                     <tr>
                         <td>${item.product_name || 'Produto sem nome'}</td>
                         <td>${item.product_code || '-'}</td>
-                        <td>${item.amount}</td>
+                        <td>${item.measure || '-'}</td>
+                        <td>${item.original_amount}</td>
+                        <td style="font-weight: bold; color: var(--color-positive, #28a745);">${item.amount}</td>
                         <td>R$ ${Number(item.price).toFixed(2)}</td>
                         <td>R$ ${Number(item.discount).toFixed(2)}</td>
                     </tr>
@@ -146,12 +139,10 @@ function renderOrders(ordersData) {
             });
         }
 
-        // Criando o elemento principal do Card
         const card = document.createElement("div");
-        card.className = "order-card"; // Classe nova do CSS
+        card.className = "order-card"; 
         card.id = `card_${orderCode}`;
 
-        // Estrutura HTML que bate com o novo CSS global
         card.innerHTML = `
             <div class="order-header-container">
                 <div class="order-header-row">
@@ -170,7 +161,9 @@ function renderOrders(ordersData) {
                     <tr>
                         <th>Produto</th>
                         <th>Código</th>
-                        <th>Quantidade</th>
+                        <th>Unid.</th>
+                        <th>Qtd. Solicitada</th>
+                        <th>Qtd. Pendente</th>
                         <th>Preço</th>
                         <th>Desconto</th>
                     </tr>
@@ -181,12 +174,11 @@ function renderOrders(ordersData) {
             </table>
         `;
 
-        // Lógica de clique para selecionar o card e ativar botões
         card.onclick = () => {
             document.querySelectorAll(".order-card").forEach(c => c.classList.remove("selected"));
             card.classList.add("selected");
             
-            selectedOrder = orderCode; // Salva para o Django saber qual excluir/atualizar
+            selectedOrder = orderCode; 
             btnUpdate.disabled = false;
             btnDelete.disabled = false;
         };
@@ -195,9 +187,9 @@ function renderOrders(ordersData) {
     });
 }
 
-// =======================================================
-// FILTROS E DATAS
-// =======================================================
+/* =======================================================
+   FILTROS E DATAS
+   ======================================================= */
 
 function formatarDataParaBR(dataString) {
     if (!dataString) return "";
@@ -249,9 +241,9 @@ function clearFilters() {
     loadOrders();
 }
 
-// =======================================================
-// ROTEAMENTO (NAVEGAÇÃO)
-// =======================================================
+/* =======================================================
+   ROTEAMENTO (NAVEGAÇÃO)
+   ======================================================= */
 
 function goToRegister() {
     window.location.href = "/order/register/";
@@ -267,13 +259,11 @@ function goToSnapshots() {
     window.location.href = "/order/snapshots/";
 }
 
-// =======================================================
-// EXCLUSÃO E MODAL
-// =======================================================
+/* =======================================================
+   EXCLUSÃO E MODAL
+   ======================================================= */
 
 function openDeleteModal() {
-    console.log("1. Clicou no botão Excluir. Pedido selecionado:", selectedOrder);
-    
     if (!selectedOrder) {
         alert("Nenhum pedido selecionado. Clique em um pedido na tabela primeiro.");
         return;
@@ -285,9 +275,6 @@ function openDeleteModal() {
         document.getElementById("confirmInput").value = "";
         document.getElementById("btnConfirmAction").disabled = true;
         clearErrors();
-        console.log("2. Modal aberto com sucesso.");
-    } else {
-        console.error("ERRO FATAL: A Div do modal (securityModal) não foi encontrada no HTML.");
     }
 }
 
@@ -301,11 +288,8 @@ function setupModalListeners() {
     
     if (input && btnConfirm) {
         input.addEventListener("input", (e) => {
-            // Ativa o botão apenas se o usuário digitar exatamente "confirmar"
             btnConfirm.disabled = e.target.value.toLowerCase() !== "confirmar";
         });
-    } else {
-        console.error("Abas do modal não encontradas para monitorar o input.");
     }
 }
 
@@ -318,8 +302,6 @@ async function deleteOrder() {
     }
 
     try {
-        console.log("3. Disparando POST para o Django. Pedido:", selectedOrder);
-        
         const res = await fetch("/order/order/delete/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -327,12 +309,10 @@ async function deleteOrder() {
         });
 
         if (!res.ok) {
-            console.error("Erro do servidor:", res.status);
             throw new Error(`Erro HTTP ${res.status}`);
         }
 
         const data = await res.json();
-        console.log("4. Resposta do Django:", data);
         
         if (data.sucess) { 
             closeModal();
@@ -341,14 +321,13 @@ async function deleteOrder() {
             showError("errConfirm", data.mensage || "Ocorreu um erro ao tentar excluir.");
         }
     } catch (e) {
-        console.error("5. Falha na requisição:", e);
-        showError("errConfirm", "Erro de conexão ou resposta inválida. Veja o console (F12).");
+        showError("errConfirm", "Erro de conexão ou resposta inválida.");
     }
 }
 
-// =======================================================
-// UTILITÁRIOS (MENSAGENS DE ERRO)
-// =======================================================
+/* =======================================================
+   UTILITÁRIOS (MENSAGENS DE ERRO)
+   ======================================================= */
 
 function showError(elementId, message) {
     const errSpan = document.getElementById(elementId);

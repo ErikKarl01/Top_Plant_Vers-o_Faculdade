@@ -4,6 +4,7 @@ const tableBody = document.getElementById("snapshotsTableBody");
 const editPanel = document.getElementById("editPanel");
 const editCode = document.getElementById("editCode");
 const editProduct = document.getElementById("editProduct");
+const editMeasure = document.getElementById("editMeasure"); 
 const editPrice = document.getElementById("editPrice");
 const editDiscount = document.getElementById("editDiscount");
 
@@ -17,7 +18,7 @@ async function loadSnapshots() {
 
     tableBody.innerHTML = `
         <tr>
-            <td colspan="5" style="text-align:center;padding:2rem;">
+            <td colspan="6" style="text-align:center;padding:2rem;">
                 Carregando snapshots...
             </td>
         </tr>
@@ -33,7 +34,7 @@ async function loadSnapshots() {
         if (!data.sucess) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align:center;padding:2rem;">
+                    <td colspan="6" style="text-align:center;padding:2rem;">
                         Nenhum snapshot encontrado.
                     </td>
                 </tr>
@@ -47,7 +48,7 @@ async function loadSnapshots() {
         console.error(error);
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center;padding:2rem;">
+                <td colspan="6" style="text-align:center;padding:2rem;">
                     Erro ao carregar snapshots.
                 </td>
             </tr>
@@ -62,7 +63,7 @@ function renderSnapshots(list) {
     if (!list || list.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center;padding:2rem;">
+                <td colspan="6" style="text-align:center;padding:2rem;">
                     Nenhum snapshot encontrado.
                 </td>
             </tr>
@@ -78,6 +79,7 @@ function renderSnapshots(list) {
             <td>${snapshot.code || "-"}</td>
             <td>${snapshot.product_code || "-"}</td>
             <td>${snapshot.product_code_name || "Sem Nome"}</td>
+            <td><strong>${snapshot.measure || "-"}</strong></td>
             <td>R$ ${Number(snapshot.price || 0).toFixed(2)}</td>
             <td>R$ ${Number(snapshot.discount || 0).toFixed(2)}</td>
         `;
@@ -101,6 +103,7 @@ function fillEdition(snapshot) {
 
     editCode.value = snapshot.code || "";
     editProduct.value = `${snapshot.product_code || ""} - ${snapshot.product_code_name || ""}`;
+    editMeasure.value = snapshot.measure || ""; 
     editPrice.value = snapshot.price || 0;
     editDiscount.value = snapshot.discount || 0;
 
@@ -122,7 +125,6 @@ function cancelEdition() {
 async function updateSnapshot() {
     if (!selectedSnapshot) return;
 
-    // Tratamento mais seguro para os valores numéricos
     const rawPrice = parseFloat(editPrice.value);
     const rawDiscount = parseFloat(editDiscount.value);
 
@@ -183,6 +185,6 @@ function showToast(message, success = true) {
         toast.classList.remove("show");
         setTimeout(() => {
             toast.remove();
-        }, 300); // Tempo da transição no CSS
+        }, 300);
     }, 3000);
 }

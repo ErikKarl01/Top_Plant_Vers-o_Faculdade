@@ -1,0 +1,141 @@
+@startuml "Testes de navegação"
+left to right direction
+
+actor "Vendedor" as vend
+
+rectangle "TPV2" {
+    
+    package "Fluxo de gerenciamento de pedido" {
+        usecase "Tela de login" as loginp 
+        usecase "Tela de gerenciamento de pedidos" as tgp
+        
+        ' Cadastro
+        usecase "Clicar botão de cadastro de pedido" as btcadp
+        usecase "Tela de cadastro de pedido" as tlcadp
+        usecase "Preencher os dados" as prencherp
+        
+        ' Atualização (Fornecimentos e Snapshot)
+        usecase "Clicar botão de atualizar pedido" as btupdp
+        usecase "Tela de atualização de pedido" as tlupdp
+        usecase "Adicionar fornecimentos" as addforn
+        usecase "Modificar snapshot do produto" as modsnap
+        
+        ' Ações comuns
+        usecase "Clicar botão de confirmar" as bntconfp
+        usecase "Modal de detalhes/confirmação do pedido" as modconfp
+        usecase "Clicar botão voltar" as btvoltp
+        usecase "Clicar botão de excluir pedido" as btexcp
+        usecase "Modal de confirmação de exclusão" as modexcp
+    }
+
+    package "Fluxo de gerenciamento de produto" {
+        usecase "Tela de login" as loginprod 
+        usecase "Tela de gerenciamento de produtos" as tgprod
+        usecase "Clicar botão de cadastro de produto" as btcadprod
+        usecase "Tela de cadastro de produto" as tlcadprod
+        usecase "Preencher os dados" as prencherprod
+        usecase "Clicar botão de confirmar" as bntconfprod
+        usecase "Clicar botão voltar" as btvoltprod
+        usecase "Clicar botão de excluir produto" as btexcprod
+        usecase "Modal de confirmação de exclusão" as modexcprod
+    }
+
+    package "Fluxo de gerenciamento de cliente" {
+        usecase "Tela de login" as logincli 
+        usecase "Tela de gerenciamento de clientes" as tgcli
+        usecase "Clicar botão de cadastro de cliente" as btcadcli
+        usecase "Tela de cadastro de cliente" as tlcadcli
+        usecase "Preencher os dados do cliente" as prenchercli
+        usecase "Clicar botão de confirmar" as bntconfcli
+        usecase "Clicar botão voltar" as btvoltcli
+        usecase "Clicar botão de excluir cliente" as btexccli
+        usecase "Modal de confirmação de exclusão" as modexccli
+    }
+
+    package "Fluxo de controle de estoque" {
+        usecase "Tela de login" as loginest
+        usecase "Tela de gerenciamento de estoque" as tgest
+        usecase "Adicionar quantidade ao estoque" as btaddest
+        usecase "Remover quantidade do estoque" as btremest
+        usecase "Modal de ajuste de quantidade" as modajusteest
+        usecase "Confirmar ajuste" as confest
+        usecase "Clicar botão voltar" as btvoltest
+    }
+}
+
+' Navegação Pedido
+vend --> loginp
+loginp --> tgp
+
+' Caminho: Criar Pedido
+tgp --> btcadp
+btcadp --> tlcadp
+tlcadp --> prencherp
+prencherp --> bntconfp
+
+' Caminho: Atualizar Pedido, Fornecimentos e Snapshot
+tgp --> btupdp
+btupdp --> tlupdp
+tlupdp --> addforn
+tlupdp --> modsnap
+addforn --> bntconfp
+modsnap --> bntconfp
+tlupdp --> btvoltp
+
+' Finalização de Ações do Pedido
+bntconfp --> modconfp
+modconfp --> tgp : Confirmar Pedido
+modconfp --> tlcadp : Ajustar dados (se novo)
+modconfp --> tlupdp : Ajustar dados (se update)
+tlcadp --> btvoltp
+btvoltp --> tgp : Voltar
+
+' Caminho: Excluir Pedido
+tgp --> btexcp
+btexcp --> modexcp
+modexcp --> tgp : Confirmar exclusão
+modexcp --> tgp : Cancelar
+
+' Navegação Produto
+vend --> loginprod
+loginprod --> tgprod
+tgprod --> btcadprod
+btcadprod --> tlcadprod
+tlcadprod --> prencherprod
+prencherprod --> bntconfprod
+bntconfprod --> tgprod : Salvar Produto
+tlcadprod --> btvoltprod
+btvoltprod --> tgprod : Voltar
+tgprod --> btexcprod
+btexcprod --> modexcprod
+modexcprod --> tgprod : Confirmar exclusão
+modexcprod --> tgprod : Cancelar
+
+' Navegação Cliente
+vend --> logincli
+logincli --> tgcli
+tgcli --> btcadcli
+btcadcli --> tlcadcli
+tlcadcli --> prenchercli
+prenchercli --> bntconfcli
+bntconfcli --> tgcli : Salvar Cliente
+tlcadcli --> btvoltcli
+btvoltcli --> tgcli : Voltar
+tgcli --> btexccli
+btexccli --> modexccli
+modexccli --> tgcli : Confirmar exclusão
+modexccli --> tgcli : Cancelar
+
+' Navegação Estoque
+vend --> loginest
+loginest --> tgest
+tgest --> btaddest
+tgest --> btremest
+btaddest --> modajusteest
+btremest --> modajusteest
+modajusteest --> confest
+confest --> tgest : Salvar ajuste
+modajusteest --> btvoltest
+btvoltest --> tgest : Cancelar/Voltar
+
+@enduml
